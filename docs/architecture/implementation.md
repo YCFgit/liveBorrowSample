@@ -255,7 +255,7 @@ flowchart TB
 | `domain/service` | 状态机、FIFO 分配规则 | 已落地 |
 | `application/store` | 存储抽象，隔离业务与持久化 | 已落地 |
 | `infrastructure/persistence` | MyBatis Mapper、Entity、MySQL 读写 | 已落地 |
-| `integration/gms` | 调拨建单、状态回写 | 待接入 |
+| `integration/gms` | 调拨建单、状态回写 | 契约与 mock 已落地 |
 | `integration/logistics` | 物流单查询、签收回执 | 待接入 |
 | `integration/dingtalk` | 用户身份、卡片回调、待办通知 | 待接入 |
 | `job/async` | 超时扫描、补偿、重试、回调消费 | 二期建议 |
@@ -275,11 +275,23 @@ flowchart TB
 
 - 钉钉机器人事件回调
 - 钉钉 H5 鉴权与用户态透传
-- GMS 建单、收货、回填物流、调拨状态同步
+- GMS 真实接口 client、收货回写、调拨状态同步
 - 物流平台回调与定时对账
 - 操作日志、幂等表、集成调用日志的正式写入
 - 统一认证、权限模型、审计追踪
 - Redis 缓存、消息队列、定时补偿任务
+
+### GMS 适配层当前边界
+
+当前代码已新增 `integration/gms` port，用于隔离业务服务和 GMS 外部系统：
+
+- `GmsClient`：定义库存查询、调拨单创建、调拨单查询和物流回填。
+- `CreateTransferOrderCommand`：统一借出和归还调拨单创建命令。
+- `GmsTransferOrder`：统一调拨单返回模型，保留 GMS 单号、业务单号、状态、物流信息和明细。
+- `TransferOrderType`：区分 `BORROW_OUT` 和 `RETURN_IN`。
+- `MockGmsClient`：非生产 profile 下的本地 mock，实现可用库存查询、借出/归还调拨单创建、物流回填和状态查询。
+
+后续真实接入时，优先新增独立的 `HttpGmsClient` 或 `OpenApiGmsClient`，保持 `GmsClient` 契约不变；应用服务只依赖 port，不直接依赖外部 HTTP SDK。
 
 ## 10. 生产落地建议
 

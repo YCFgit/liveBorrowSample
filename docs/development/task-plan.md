@@ -18,7 +18,9 @@
 | 8. 细化产品与数据治理 | complete | 已输出 PRD、验收标准、数据架构设计 |
 | 9. 搭建后端骨架 | complete | 已输出 Spring Boot 项目骨架、统一响应、异常处理、枚举字典接口 |
 | 10. 实现可运行接口原型 | complete | 已实现 borrow/return/admin 控制器、DTO、内存版服务和 FIFO 分配逻辑 |
-| 11. 本地构建验证 | complete | `mvn test` 已通过 |
+| 11. 接入 MySQL 持久化 | complete | 已完成 MyBatis Mapper、Entity、Flyway migration、seed 数据和 MySQL Store |
+| 12. 本地构建验证 | complete | `mvn test` 已通过 |
+| 13. 固定 GMS 适配层契约 | in_progress | 已新增 GMS client port、transfer order DTO 和非生产 mock 实现 |
 
 ## 当前关键问题
 
@@ -27,8 +29,11 @@
 - 物流单号回填存在接口待确认缺口，方案必须考虑补偿机制。
 - 通用归还存在按虚店聚合与 FIFO 自动拆分到多任务的需求，不能只靠单表字段硬撑。
 - 质检销账涉及唯一码与品相变化，天然是异步轮询/事件驱动场景。
-- 下一步若进入研发，应先把 GMS 接口契约和项目骨架固定下来，再开始写业务代码。
-- 下一步主要工作已转为：接入 MySQL 持久化、补 Mapper/Entity、接入 GMS/物流适配层、增加集成测试。
+- MySQL 持久化已经落地，下一步重点转为外部系统契约和生产一致性。
+- GMS 适配层契约已开始固定，后续要把借出建单、归还建单、物流回填接入应用服务。
+- 物流平台适配层仍未接入，需要先明确签收查询、回调和对账边界。
+- 操作日志、幂等表、集成调用日志已有数据库设计，但业务代码尚未正式写入。
+- Testcontainers 集成测试已补充，但本机运行依赖 Docker Desktop。
 
 ## 风险
 

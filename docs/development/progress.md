@@ -22,3 +22,14 @@
 - 将本地默认 MySQL 账号改为 `ycf / ycf012!`，并保留环境变量覆盖能力。
 - 验证本地 MySQL 时仍返回 `Access denied for user 'ycf'@'localhost'`。
 - 新增 `sql/local_mysql_setup.sql`，用于本地创建数据库、账号和授权。
+
+## 2026-06-26
+
+- 完成 MyBatis + MySQL 持久化实现，新增 Mapper、Entity、`MysqlSampleDataStore`、Flyway migration 和 demo seed。
+- 本地 MySQL 权限修复完成，`ycf / ycf012!` 可用于 `live_borrow_sample`。
+- 新增 Testcontainers 集成测试，覆盖申请明细、虚店种子数据、归还批次分配和任务归还状态持久化。
+- 执行 `mvn test` 成功，当前默认单元测试通过；`mvn verify -Pintegration-test` 依赖 Docker Desktop。
+- 初始化 Git 仓库，关联并推送到 `https://github.com/YCFgit/liveBorrowSample`。
+- 新增 GMS 适配层第一版契约：`GmsClient`、调拨单创建命令、调拨单返回模型和调拨单类型枚举。
+- 新增非生产 `MockGmsClient`，支持可用库存查询、借出/归还调拨单创建、物流回填和调拨单查询。
+- 新增 `MockGmsClientTest`，固定 GMS mock 行为契约。
