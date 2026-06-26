@@ -19,10 +19,14 @@ This directory contains human-oriented project documentation.
 - [Data architecture](database/data-architecture.md)
 - [OpenAPI contract](../api/openapi.yaml)
 
+## Integration
+
+- [GMS integration API](integration/gms-api.md)
+
 ## DingTalk
 
 - [H5 auth and callback checklist](dingtalk/h5-auth-and-callback.md)
-- [Interactive card template](dingtalk/interactive-card-template.md)
+- [Interactive card template](dingtalk/interactive-card-template.md) - optional notification and deep-link template
 
 ## Development
 

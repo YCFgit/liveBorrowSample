@@ -371,6 +371,8 @@
 
 ## 6.1 GMS 适配器
 
+详细接口契约见 [GMS integration API](../integration/gms-api.md)。
+
 建议在服务内抽象如下接口：
 
 - `createBorrowTransfer(BorrowTransferCommand command)`
