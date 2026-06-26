@@ -304,7 +304,55 @@ function onUserChange() {
   clearSearch(); renderMain();
 }
 
-function renderMain() { renderPending(); renderBorrowing(); renderHistory(); }
+function renderMain() { updateMainCounts(); renderPending(); renderBorrowing(); renderHistory(); }
+
+function countUserTasks() {
+  var tasks = userTasks();
+  var counts = {
+    pendingTotal: 0,
+    pending: 0,
+    pending_pickup: 0,
+    in_transit: 0,
+    borrowingTotal: 0,
+    borrowingNormal: 0,
+    borrowingOverdue: 0,
+    history: 0
+  };
+  Object.keys(tasks).forEach(function(id) {
+    var t = tasks[id];
+    if (['pending','in_transit','pending_pickup'].indexOf(t.status) >= 0) {
+      counts.pendingTotal++;
+      counts[t.status]++;
+      return;
+    }
+    if (['borrowing','return_pending','return_logistics_filled','store_pending'].indexOf(t.status) >= 0) {
+      counts.borrowingTotal++;
+      if (t.status === 'borrowing' && isOverdue(t)) counts.borrowingOverdue++;
+      else counts.borrowingNormal++;
+      return;
+    }
+    if (t.status === 'completed') counts.history++;
+  });
+  return counts;
+}
+
+function countBadge(value, cls) {
+  return '<span class="' + cls + '">' + Number(value || 0) + '</span>';
+}
+
+function updateMainCounts() {
+  var counts = countUserTasks();
+  var tabs = {
+    pending: '待收货',
+    borrowing: '借样中',
+    history: '历史任务'
+  };
+  document.querySelector('#main-tab-bar .tab-item[data-tab="pending"]').innerHTML = tabs.pending + countBadge(counts.pendingTotal, 'tab-count');
+  document.querySelector('#main-tab-bar .tab-item[data-tab="borrowing"]').innerHTML = tabs.borrowing + countBadge(counts.borrowingTotal, 'tab-count');
+  document.querySelector('#main-tab-bar .tab-item[data-tab="history"]').innerHTML = tabs.history + countBadge(counts.history, 'tab-count');
+  updatePendingFilterLabels(counts);
+  updateBorrowingFilterLabels(counts);
+}
 
 function switchMainTab(tab) {
   S.tab = tab;
@@ -317,17 +365,40 @@ function switchMainTab(tab) {
 
 function setPendingFilter(f) {
   S.pFilter = f;
-  var pills = document.querySelectorAll('#filter-pending .filter-pill');
-  var map = {all:0,pending:1,pending_pickup:2,in_transit:3};
-  pills.forEach(function(p, i) { p.classList.toggle('active', i === map[f]); });
+  updatePendingFilterLabels(countUserTasks());
   renderPending();
 }
 function setBorrowingFilter(f) {
   S.bFilter = f;
-  var pills = document.querySelectorAll('#filter-borrowing .filter-pill');
-  var map = {all:0,normal:1,overdue:2};
-  pills.forEach(function(p, i) { p.classList.toggle('active', i === map[f]); });
+  updateBorrowingFilterLabels(countUserTasks());
   renderBorrowing();
+}
+
+function updatePendingFilterLabels(counts) {
+  var labels = [
+    {key:'all', text:'全部', count: counts.pendingTotal},
+    {key:'pending', text:'待发货', count: counts.pending},
+    {key:'pending_pickup', text:'自提待提货', count: counts.pending_pickup},
+    {key:'in_transit', text:'发货在途', count: counts.in_transit}
+  ];
+  document.querySelectorAll('#filter-pending .filter-pill').forEach(function(p, i) {
+    var item = labels[i];
+    p.classList.toggle('active', item.key === S.pFilter);
+    p.innerHTML = item.text + countBadge(item.count, 'filter-count');
+  });
+}
+
+function updateBorrowingFilterLabels(counts) {
+  var labels = [
+    {key:'all', text:'全部', count: counts.borrowingTotal},
+    {key:'normal', text:'未到期', count: counts.borrowingNormal},
+    {key:'overdue', text:'逾期待还', count: counts.borrowingOverdue}
+  ];
+  document.querySelectorAll('#filter-borrowing .filter-pill').forEach(function(p, i) {
+    var item = labels[i];
+    p.classList.toggle('active', item.key === S.bFilter);
+    p.innerHTML = item.text + countBadge(item.count, 'filter-count');
+  });
 }
 
 function renderPending() {
@@ -381,16 +452,17 @@ function taskCard(taskId, task) {
   if (task.returnLogisticsNo) lines += '<div style="color:#13c2c2;font-size:12px"><i class="fa-solid fa-truck"></i> 归还物流：' + task.returnLogisticsNo + '</div>';
   if (task.returnStoreName) lines += '<div style="color:#722ed1;font-size:12px"><i class="fa-solid fa-store"></i> 归还门店：' + task.returnStoreName + '</div>';
 
-  var act = '<button class="btn btn-link btn-sm" onclick="viewDetail(\'' + taskId + '\')">查看详情</button>';
-  if (task.status === 'pending') act += '<button class="btn btn-outline btn-sm" onclick="simulateShip(\'' + taskId + '\')">模拟发货</button>';
-  else if (task.status === 'in_transit') act += '<button class="btn btn-primary btn-sm" onclick="confirmReceive(\'' + taskId + '\')">确认收货</button>';
-  else if (task.status === 'pending_pickup') act += '<button class="btn btn-primary btn-sm" onclick="openPickupModal(\'' + taskId + '\')">确认自提</button>';
-  else if (task.status === 'borrowing') act += '<button class="btn btn-primary btn-sm" onclick="returnFromTask(\'' + taskId + '\')">发起归还</button>';
-  else if (task.status === 'return_pending') act += '<button class="btn btn-primary btn-sm" onclick="goToLogisticsForTask(\'' + taskId + '\')">填写物流单号</button>';
-  else if (task.status === 'return_logistics_filled') act += '<button class="btn btn-outline btn-sm" onclick="simulateExpressComplete(\'' + taskId + '\')">模拟仓库收货完成</button>';
-  else if (task.status === 'store_pending') act += '<button class="btn btn-success btn-sm" onclick="simulateStoreReceive(\'' + taskId + '\')">模拟门店收货</button>';
+  var secondary = '<button class="btn btn-link btn-sm" onclick="viewDetail(\'' + taskId + '\')">查看详情</button>';
+  var primary = '';
+  if (task.status === 'pending') primary = '<button class="btn btn-outline btn-sm" onclick="simulateShip(\'' + taskId + '\')">模拟发货</button>';
+  else if (task.status === 'in_transit') primary = '<button class="btn btn-primary btn-sm" onclick="confirmReceive(\'' + taskId + '\')">确认收货</button>';
+  else if (task.status === 'pending_pickup') primary = '<button class="btn btn-primary btn-sm" onclick="openPickupModal(\'' + taskId + '\')">确认自提</button>';
+  else if (task.status === 'borrowing') primary = '<button class="btn btn-primary btn-sm" onclick="returnFromTask(\'' + taskId + '\')">发起归还</button>';
+  else if (task.status === 'return_pending') primary = '<button class="btn btn-primary btn-sm" onclick="goToLogisticsForTask(\'' + taskId + '\')">填写物流单号</button>';
+  else if (task.status === 'return_logistics_filled') primary = '<button class="btn btn-outline btn-sm" onclick="simulateExpressComplete(\'' + taskId + '\')">模拟仓库收货完成</button>';
+  else if (task.status === 'store_pending') primary = '<button class="btn btn-success btn-sm" onclick="simulateStoreReceive(\'' + taskId + '\')">模拟门店收货</button>';
 
-  return '<div class="' + cls + '"><div class="card-title"><span class="status-tag ' + si.c + '">' + si.t + si.i + '</span><span style="font-size:12px;color:#999">' + taskId + '</span></div><div class="card-content">' + lines + '</div><div class="card-footer">' + act + '</div></div>';
+  return '<div class="' + cls + '"><div class="card-title"><span class="status-tag ' + si.c + '">' + si.t + si.i + '</span><span style="font-size:12px;color:#999">' + taskId + '</span></div><div class="card-content">' + lines + '</div><div class="card-footer">' + secondary + primary + '</div></div>';
 }
 
 function viewDetail(taskId) {
