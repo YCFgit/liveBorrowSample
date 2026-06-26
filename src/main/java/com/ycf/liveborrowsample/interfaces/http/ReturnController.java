@@ -59,4 +59,9 @@ public class ReturnController {
     ) {
         return ApiResponse.success(returnApplicationService.fillLogistics(returnBatchNo, request));
     }
+
+    @PostMapping("/batches/{returnBatchNo}/complete")
+    public ApiResponse<ReturnBatchDetailResponse> completeBatch(@PathVariable String returnBatchNo) {
+        return ApiResponse.success(returnApplicationService.completeBatch(returnBatchNo));
+    }
 }

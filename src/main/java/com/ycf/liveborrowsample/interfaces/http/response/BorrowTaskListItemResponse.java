@@ -11,6 +11,7 @@ public record BorrowTaskListItemResponse(
     String deliveryStatus,
     String pickupStatus,
     String returnStatus,
+    String currentReturnBatchNo,
     String expectedReturnAt,
     String logisticsNo,
     String itemSummary

@@ -231,4 +231,10 @@ public class SampleTask {
         this.logisticsNo = logisticsNo;
         this.returnStatus = ReturnStatus.LOGISTICS_FILLED;
     }
+
+    public void completeReturn() {
+        this.items.forEach(SampleTaskItem::completeReturn);
+        this.returnStatus = ReturnStatus.COMPLETED;
+        this.taskStatus = TaskStatus.COMPLETED;
+    }
 }

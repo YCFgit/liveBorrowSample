@@ -4,6 +4,7 @@ import com.ycf.liveborrowsample.application.service.BorrowApplicationService;
 import com.ycf.liveborrowsample.interfaces.http.request.BorrowApplicationCreateRequest;
 import com.ycf.liveborrowsample.interfaces.http.request.PickupConfirmRequest;
 import com.ycf.liveborrowsample.interfaces.http.request.ReceiveConfirmRequest;
+import com.ycf.liveborrowsample.interfaces.http.request.ShipConfirmRequest;
 import com.ycf.liveborrowsample.interfaces.http.response.ApiResponse;
 import com.ycf.liveborrowsample.interfaces.http.response.BorrowApplicationCreateResponse;
 import com.ycf.liveborrowsample.interfaces.http.response.BorrowTaskDetailResponse;
@@ -56,11 +57,24 @@ public class BorrowController {
         return ApiResponse.success(borrowApplicationService.confirmReceive(taskNo, request));
     }
 
+    @PostMapping("/tasks/{taskNo}/ship-confirm")
+    public ApiResponse<OperationResultResponse> confirmShip(
+        @PathVariable String taskNo,
+        @RequestBody ShipConfirmRequest request
+    ) {
+        return ApiResponse.success(borrowApplicationService.confirmShip(taskNo, request));
+    }
+
     @PostMapping("/tasks/{taskNo}/pickup-confirm")
     public ApiResponse<OperationResultResponse> confirmPickup(
         @PathVariable String taskNo,
         @Valid @RequestBody PickupConfirmRequest request
     ) {
         return ApiResponse.success(borrowApplicationService.confirmPickup(taskNo, request));
+    }
+
+    @PostMapping("/tasks/{taskNo}/return-complete")
+    public ApiResponse<OperationResultResponse> completeReturn(@PathVariable String taskNo) {
+        return ApiResponse.success(borrowApplicationService.completeReturn(taskNo));
     }
 }

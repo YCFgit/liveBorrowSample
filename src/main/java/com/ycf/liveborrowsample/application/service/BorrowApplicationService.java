@@ -20,6 +20,7 @@ import com.ycf.liveborrowsample.interfaces.http.request.BorrowApplicationCreateR
 import com.ycf.liveborrowsample.interfaces.http.request.BorrowItemRequest;
 import com.ycf.liveborrowsample.interfaces.http.request.PickupConfirmRequest;
 import com.ycf.liveborrowsample.interfaces.http.request.ReceiveConfirmRequest;
+import com.ycf.liveborrowsample.interfaces.http.request.ShipConfirmRequest;
 import com.ycf.liveborrowsample.interfaces.http.response.BorrowApplicationCreateResponse;
 import com.ycf.liveborrowsample.interfaces.http.response.BorrowTaskDetailResponse;
 import com.ycf.liveborrowsample.interfaces.http.response.BorrowTaskItemResponse;
@@ -174,6 +175,18 @@ public class BorrowApplicationService {
     }
 
     @Transactional
+    public OperationResultResponse confirmShip(String taskNo, ShipConfirmRequest request) {
+        SampleTask task = findTask(taskNo);
+        if (task.getTaskStatus() != TaskStatus.WAIT_SHIP) {
+            throw new BusinessException(ErrorCode.TASK_ACTION_ILLEGAL, "仅待发货任务可模拟发货");
+        }
+        String logisticsNo = isBlank(request.logisticsNo()) ? "SF" + System.currentTimeMillis() : request.logisticsNo();
+        task.markInTransit(logisticsNo);
+        dataStore.saveTask(task);
+        return toOperationResult(task, "发货完成");
+    }
+
+    @Transactional
     public OperationResultResponse confirmPickup(String taskNo, PickupConfirmRequest request) {
         SampleTask task = findTask(taskNo);
         if (!taskStateMachine.canExecute(task.getTaskStatus(), TaskAction.CONFIRM_PICKUP)) {
@@ -197,6 +210,18 @@ public class BorrowApplicationService {
         return toOperationResult(task, fullyPicked ? "自提确认完成" : "部分自提已确认");
     }
 
+    @Transactional
+    public OperationResultResponse completeReturn(String taskNo) {
+        SampleTask task = findTask(taskNo);
+        if (task.getTaskStatus() != TaskStatus.RETURNING
+            || (task.getReturnStatus() != ReturnStatus.LOGISTICS_FILLED && task.getReturnStatus() != ReturnStatus.STORE_PENDING)) {
+            throw new BusinessException(ErrorCode.TASK_ACTION_ILLEGAL, "仅物流已填或待门店收货的归还任务可完成收货");
+        }
+        task.completeReturn();
+        dataStore.saveTask(task);
+        return toOperationResult(task, "归还收货完成，任务已完结");
+    }
+
     private SampleTask findTask(String taskNo) {
         return dataStore.findTask(taskNo)
             .orElseThrow(() -> new BusinessException(ErrorCode.PARAM_INVALID, "任务不存在"));
@@ -218,6 +243,7 @@ public class BorrowApplicationService {
             task.getDeliveryStatus().name(),
             task.getPickupStatus().name(),
             task.getReturnStatus().name(),
+            task.getCurrentReturnBatchNo(),
             format(task.getExpectedReturnAt()),
             task.getLogisticsNo(),
             itemSummary

@@ -122,4 +122,8 @@ public class ReturnBatch {
         this.logisticsNo = logisticsNo;
         this.status = BatchStatus.LOGISTICS_FILLED;
     }
+
+    public void complete() {
+        this.status = BatchStatus.COMPLETED;
+    }
 }

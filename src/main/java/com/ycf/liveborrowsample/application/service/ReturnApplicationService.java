@@ -229,6 +229,23 @@ public class ReturnApplicationService {
         return getBatchDetail(returnBatchNo);
     }
 
+    @Transactional
+    public ReturnBatchDetailResponse completeBatch(String returnBatchNo) {
+        ReturnBatch batch = dataStore.findBatch(returnBatchNo)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PARAM_INVALID, "归还批次不存在"));
+        if (batch.getStatus() != BatchStatus.LOGISTICS_FILLED && batch.getStatus() != BatchStatus.STORE_PENDING) {
+            throw new BusinessException(ErrorCode.RETURN_BATCH_STATUS_ILLEGAL);
+        }
+        batch.complete();
+        batch.getAllocations().forEach(allocation -> {
+            SampleTask task = mustFindTask(allocation.getTaskNo());
+            task.completeReturn();
+            dataStore.saveTask(task);
+        });
+        dataStore.saveBatch(batch);
+        return getBatchDetail(returnBatchNo);
+    }
+
     private List<SampleTask> eligibleTasks(String virtualStoreCode, SampleFilterType sampleFilterType) {
         return dataStore.listTasksByVirtualStore(virtualStoreCode).stream()
             .filter(task -> task.getTaskStatus() == TaskStatus.BORROWING || task.getTaskStatus() == TaskStatus.RETURNING)

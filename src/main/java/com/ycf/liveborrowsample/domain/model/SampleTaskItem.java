@@ -135,4 +135,12 @@ public class SampleTaskItem {
     public void applyReturn(int qty) {
         this.returnedApplyQty += qty;
     }
+
+    public void completeReturn() {
+        int pendingQty = this.returnedApplyQty - this.returnedReceivedQty;
+        if (pendingQty > 0) {
+            this.returnedReceivedQty += pendingQty;
+        }
+        this.borrowingQty = Math.max(0, this.borrowingQty - this.returnedReceivedQty);
+    }
 }
