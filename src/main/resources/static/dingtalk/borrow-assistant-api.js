@@ -336,10 +336,6 @@ function countUserTasks() {
   return counts;
 }
 
-function countBadge(value, cls) {
-  return '<span class="' + cls + '">' + Number(value || 0) + '</span>';
-}
-
 function updateMainCounts() {
   var counts = countUserTasks();
   var tabs = {
@@ -347,9 +343,9 @@ function updateMainCounts() {
     borrowing: '借样中',
     history: '历史任务'
   };
-  document.querySelector('#main-tab-bar .tab-item[data-tab="pending"]').innerHTML = tabs.pending + countBadge(counts.pendingTotal, 'tab-count');
-  document.querySelector('#main-tab-bar .tab-item[data-tab="borrowing"]').innerHTML = tabs.borrowing + countBadge(counts.borrowingTotal, 'tab-count');
-  document.querySelector('#main-tab-bar .tab-item[data-tab="history"]').innerHTML = tabs.history + countBadge(counts.history, 'tab-count');
+  document.querySelector('#main-tab-bar .tab-item[data-tab="pending"]').textContent = tabs.pending;
+  document.querySelector('#main-tab-bar .tab-item[data-tab="borrowing"]').textContent = tabs.borrowing;
+  document.querySelector('#main-tab-bar .tab-item[data-tab="history"]').textContent = tabs.history;
   updatePendingFilterLabels(counts);
   updateBorrowingFilterLabels(counts);
 }
@@ -376,28 +372,28 @@ function setBorrowingFilter(f) {
 
 function updatePendingFilterLabels(counts) {
   var labels = [
-    {key:'all', text:'全部', count: counts.pendingTotal},
-    {key:'pending', text:'待发货', count: counts.pending},
-    {key:'pending_pickup', text:'自提待提货', count: counts.pending_pickup},
-    {key:'in_transit', text:'发货在途', count: counts.in_transit}
+    {key:'all', text:'全部'},
+    {key:'pending', text:'待发货'},
+    {key:'pending_pickup', text:'自提待提货'},
+    {key:'in_transit', text:'发货在途'}
   ];
   document.querySelectorAll('#filter-pending .filter-pill').forEach(function(p, i) {
     var item = labels[i];
     p.classList.toggle('active', item.key === S.pFilter);
-    p.innerHTML = item.text + countBadge(item.count, 'filter-count');
+    p.textContent = item.text;
   });
 }
 
 function updateBorrowingFilterLabels(counts) {
   var labels = [
-    {key:'all', text:'全部', count: counts.borrowingTotal},
-    {key:'normal', text:'未到期', count: counts.borrowingNormal},
-    {key:'overdue', text:'逾期待还', count: counts.borrowingOverdue}
+    {key:'all', text:'全部'},
+    {key:'normal', text:'未到期'},
+    {key:'overdue', text:'逾期待还'}
   ];
   document.querySelectorAll('#filter-borrowing .filter-pill').forEach(function(p, i) {
     var item = labels[i];
     p.classList.toggle('active', item.key === S.bFilter);
-    p.innerHTML = item.text + countBadge(item.count, 'filter-count');
+    p.textContent = item.text;
   });
 }
 
