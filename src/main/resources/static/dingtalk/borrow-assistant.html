@@ -51,9 +51,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .status-return-pending{background:#fffbe6;color:#faad14}
 .status-store-pending{background:#f9f0ff;color:#722ed1}
 .status-logistics-filled{background:#e6fffb;color:#13c2c2}
-.filter-bar{display:flex;gap:6px;margin:0 -16px 8px;padding:0 16px 2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.filter-bar::-webkit-scrollbar{display:none}
-.filter-pill{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:5px 12px;border-radius:16px;font-size:12px;border:1px solid #d9d9d9;background:#fff;color:#666;cursor:pointer;transition:all .2s;white-space:nowrap;flex:0 0 auto}
+.filter-bar{display:grid;gap:6px;margin:0 0 8px;padding:0;overflow:visible}
+#filter-pending{grid-template-columns:repeat(4,minmax(0,1fr))}
+#filter-borrowing{grid-template-columns:repeat(3,minmax(0,1fr))}
+.filter-pill{display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:32px;padding:5px 6px;border-radius:16px;font-size:12px;border:1px solid #d9d9d9;background:#fff;color:#666;cursor:pointer;transition:all .2s;white-space:nowrap}
 .filter-pill.active{background:#e8f3ff;color:#1677FF;border-color:#1677FF;font-weight:500}
 .filter-count{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#f0f2f5;color:#666;font-size:10px;font-weight:600}
 .filter-pill.active .filter-count{background:#1677FF;color:#fff}
@@ -419,6 +420,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   </div>
 </div>
 
-<script src="/dingtalk/borrow-assistant-api.js?v=20260626l"></script>
+<script src="/dingtalk/borrow-assistant-api.js?v=20260626m"></script>
 </body>
 </html>
