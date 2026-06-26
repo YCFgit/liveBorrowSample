@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: live-borrow-sample
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jackson:
+    default-property-inclusion: non_null
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+dingtalk:
+  app-id: ${DINGTALK_APP_ID:}
+  agent-id: ${DINGTALK_AGENT_ID:}
+  client-id: ${DINGTALK_CLIENT_ID:}
+  client-secret: ${DINGTALK_CLIENT_SECRET:}
+  robot-code: ${DINGTALK_ROBOT_CODE:}
+  corp-id: ${DINGTALK_CORP_ID:}
+  callback-url: ${DINGTALK_CALLBACK_URL:}
+  callback-token: ${DINGTALK_CALLBACK_TOKEN:}
+  callback-aes-key: ${DINGTALK_CALLBACK_AES_KEY:}
+  callback-owner-key: ${DINGTALK_CALLBACK_OWNER_KEY:}

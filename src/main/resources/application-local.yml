@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:live_borrow_sample}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USERNAME:ycf}
+    password: ${DB_PASSWORD:ycf012!}
+    driver-class-name: com.mysql.cj.jdbc.Driver

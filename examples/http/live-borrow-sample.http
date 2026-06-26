@@ -1,0 +1,72 @@
+@baseUrl = http://localhost:8080
+@taskNo = BT202606240001
+@returnBatchNo = RT20260625000001
+
+### Health
+GET {{baseUrl}}/api/v1/health
+
+### List virtual stores
+GET {{baseUrl}}/api/v1/returns/virtual-stores
+
+### Create express borrow application
+POST {{baseUrl}}/api/v1/borrow/applications
+Content-Type: application/json
+
+{
+  "virtualStoreCode": "VS0001",
+  "deliveryType": "EXPRESS",
+  "remark": "HTTP client example",
+  "receiver": {
+    "name": "张三",
+    "mobile": "13800000000",
+    "province": "上海市",
+    "city": "上海市",
+    "district": "徐汇区",
+    "address": "漕溪北路 100 号"
+  },
+  "items": [
+    {
+      "skuCode": "SKU001",
+      "sizeCode": "M",
+      "applyQty": 1
+    }
+  ]
+}
+
+### List borrow tasks
+GET {{baseUrl}}/api/v1/borrow/tasks?pageNo=1&pageSize=20
+
+### Get borrow task detail
+GET {{baseUrl}}/api/v1/borrow/tasks/{{taskNo}}
+
+### Query return aggregation
+GET {{baseUrl}}/api/v1/returns/aggregations?virtualStoreCode=VS0001&sampleFilterType=ALL
+
+### Create return batch
+POST {{baseUrl}}/api/v1/returns/batches
+Content-Type: application/json
+
+{
+  "virtualStoreCode": "VS0001",
+  "sourceType": "TASK_DETAIL",
+  "sampleFilterType": "ALL",
+  "returnMethod": "EXPRESS",
+  "remark": "HTTP client example",
+  "items": [
+    {
+      "skuCode": "SKU001",
+      "sizeCode": "M",
+      "applyReturnQty": 1
+    }
+  ]
+}
+
+### Fill return logistics
+POST {{baseUrl}}/api/v1/returns/batches/{{returnBatchNo}}/logistics
+Content-Type: application/json
+
+{
+  "companyCode": "SF",
+  "companyName": "顺丰",
+  "logisticsNo": "SF1234567890"
+}

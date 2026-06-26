@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直播借样系统 V1.5</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'PingFang SC','Microsoft YaHei',sans-serif}
+body{background:#f5f7fa;padding-bottom:80px}
+.page{display:none;width:375px;margin:0 auto;background:#f5f7fa;min-height:100vh;padding:16px;padding-top:56px}
+.page.active{display:block}
+.top-bar{position:fixed;top:0;left:0;right:0;width:375px;margin:0 auto;background:#fff;z-index:1000;padding:8px 16px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.top-bar label{font-size:12px;color:#666;white-space:nowrap}
+.top-bar select{flex:1;padding:6px 8px;border:1px solid #d9d9d9;border-radius:6px;font-size:13px;background:#fff}
+.page-header{display:flex;align-items:center;margin-bottom:16px;position:relative}
+.back-btn{border:none;background:none;color:#1677FF;font-size:14px;display:flex;align-items:center;cursor:pointer;padding:4px 8px}
+.page-title{font-size:16px;font-weight:bold;text-align:center;flex:1;margin-right:40px}
+.tab-bar{display:flex;background:#fff;border-radius:8px;margin-bottom:16px;overflow:hidden}
+.tab-item{flex:1;text-align:center;padding:12px;font-size:14px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab-item.active{color:#1677FF;border-bottom:2px solid #1677FF;font-weight:bold}
+.stat-row{font-size:12px;color:#666;margin-bottom:12px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:bold;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.card-content{font-size:14px;color:#333;line-height:1.6}
+.card-footer{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{padding:8px 16px;border-radius:8px;border:none;font-size:14px;cursor:pointer;flex:1;text-align:center;transition:all .2s}
+.btn-primary{background:#1677FF;color:#fff}
+.btn-primary:hover{background:#4096ff}
+.btn-success{background:#52c41a;color:#fff}
+.btn-success:hover{background:#73d13d}
+.btn-link{background:none;color:#1677FF;padding:8px 0;border:none;cursor:pointer;font-size:14px;flex:none}
+.btn-sm{padding:4px 12px;font-size:12px;flex:none}
+.btn-outline{background:#fff;color:#1677FF;border:1px solid #1677FF}
+.btn-import{background:#e8f3ff;color:#1677FF;border:1px solid #91caff;border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.status-tag{padding:2px 8px;border-radius:4px;font-size:12px;white-space:nowrap}
+.status-pending{background:#e8f3ff;color:#4080ff}
+.status-in-transit{background:#fff7e6;color:#fa8c16}
+.status-pending-pickup{background:#f6ffed;color:#52c41a}
+.status-borrowing{background:#e8f3ff;color:#1677FF}
+.status-overdue{background:#fff1f0;color:#f5222d}
+.status-completed{background:#f5f5f5;color:#434343}
+.status-return-pending{background:#fffbe6;color:#faad14}
+.status-store-pending{background:#f9f0ff;color:#722ed1}
+.status-logistics-filled{background:#e6fffb;color:#13c2c2}
+.filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.filter-pill{padding:4px 12px;border-radius:16px;font-size:12px;border:1px solid #d9d9d9;background:#fff;color:#666;cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-pill.active{background:#e8f3ff;color:#1677FF;border-color:#1677FF;font-weight:500}
+.search-bar-wrapper{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.search-input-container{flex:1;position:relative}
+.search-input{width:100%;padding:10px 36px 10px 12px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;background:#fff}
+.search-input:focus{outline:none;border-color:#1677FF;box-shadow:0 0 0 2px rgba(22,119,255,0.1)}
+.search-clear-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;font-size:14px;cursor:pointer;padding:4px}
+.search-btn{padding:10px 20px;background:#1677FF;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;white-space:nowrap}
+.form-item{margin-bottom:16px}
+.form-label{font-size:14px;margin-bottom:8px;display:block;color:#333}
+.form-input,.form-select,.form-textarea{width:100%;padding:12px;border:1px solid #d9d9d9;border-radius:8px;font-size:14px;font-family:inherit}
+.form-textarea{min-height:80px;resize:vertical}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:#1677FF;box-shadow:0 0 0 2px rgba(22,119,255,0.1)}
+.form-input::placeholder{color:#bfbfbf}
+.radio-group{margin:8px 0}
+.radio-item{display:flex;align-items:center;margin-bottom:8px;gap:6px}
+.sample-table{width:100%;border-collapse:collapse;margin:8px 0}
+.sample-table th,.sample-table td{padding:6px 4px;border:1px solid #e5e6eb;font-size:12px;text-align:center}
+.sample-table th{background:#f5f7fa;font-weight:bold}
+.sample-table input{width:100%;padding:6px;border:1px solid #d9d9d9;border-radius:4px;font-size:12px;text-align:center;box-sizing:border-box}
+.del-row-btn{background:#fff1f0;color:#f5222d;border:1px solid #ffa39e;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer}
+.sample-summary{font-size:12px;color:#666;margin-top:4px}
+.search-select-wrapper{position:relative}
+.shop-dropdown,.store-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d9d9d9;border-top:none;border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.shop-option,.store-option{padding:8px 12px;font-size:13px;cursor:pointer}
+.shop-option:hover,.store-option:hover{background:#e8f3ff;color:#1677FF}
+.store-option .sid{color:#999;font-size:11px;margin-left:4px}
+.store-selected-tag{display:inline-block;background:#e8f3ff;color:#1677FF;padding:2px 8px;border-radius:4px;font-size:12px;margin-top:4px}
+.return-item-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.return-item-row:last-child{border-bottom:none}
+.return-item-info{flex:1;min-width:0}
+.return-item-sku{font-size:14px;font-weight:500}
+.return-item-store{font-size:11px;color:#999;margin-top:2px}
+.return-item-qty{font-size:12px;color:#666;white-space:nowrap}
+.return-qty-input{width:52px;padding:4px 6px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;text-align:center}
+.return-method-selector{background:#fff;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.method-label{font-size:13px;margin-bottom:8px;color:#333}
+.method-options{display:flex;gap:8px}
+.method-option{flex:1;padding:8px;border:1px solid #d9d9d9;border-radius:8px;text-align:center;font-size:13px;cursor:pointer;transition:all .2s}
+.method-option.selected{border-color:#1677FF;background:#e8f3ff;color:#1677FF}
+.return-summary-bar{background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#666}
+.summary-count{color:#1677FF;font-weight:bold}
+.bottom-btn-dual{position:fixed;bottom:0;left:0;right:0;width:375px;margin:0 auto;background:#fff;padding:12px 16px;box-shadow:0 -2px 8px rgba(0,0,0,0.08);z-index:999;display:flex;gap:8px}
+.btn-borrow{flex:1;padding:12px;background:#1677FF;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer}
+.btn-return{flex:1;padding:12px;background:#52c41a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:bold;cursor:pointer}
+.batch-result-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;margin-bottom:12px}
+.batch-no{font-size:16px;font-weight:bold;color:#1677FF;text-align:center;padding:12px 0}
+.batch-task-item{padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.batch-task-item:last-child{border-bottom:none}
+.timeline{margin-top:16px;padding-left:20px;position:relative}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#e5e6eb}
+.timeline-item{position:relative;margin-bottom:16px}
+.timeline-item::before{content:'';position:absolute;left:-20px;top:4px;width:16px;height:16px;border-radius:50%;background:#1677FF}
+.timeline-time{font-size:12px;color:#999;margin-bottom:4px}
+.timeline-content{font-size:14px;color:#333}
+.empty-state{text-align:center;padding:48px 16px;color:#999;font-size:14px}
+.empty-icon{font-size:48px;margin-bottom:16px}
+.modal-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:2000}
+.modal-mask.active{display:flex}
+.modal-content{width:340px;background:#fff;border-radius:12px;padding:20px;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:bold;margin-bottom:16px}
+.modal-footer{display:flex;gap:8px;margin-top:20px}
+.import-tabs{display:flex;border-bottom:1px solid #e5e6eb;margin-bottom:4px}
+.import-tab{flex:1;text-align:center;padding:8px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:#666}
+.import-tab.active{color:#1677FF;border-bottom:2px solid #1677FF;font-weight:bold}
+.card-overdue{border-left:3px solid #f5222d}
+.red-text{color:#f5222d;font-weight:bold}
+.tab-content-area{display:none}
+.tab-content-area.active{display:block}
+.search-results-area{margin-bottom:12px}
+.search-results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13px;color:#666}
+.search-results-clear{color:#1677FF;font-size:12px;cursor:pointer;text-decoration:none}
+.search-result-card{cursor:pointer;transition:box-shadow .2s}
+.search-result-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.12)}
+.search-result-match{background:#fff7e6;padding:2px 4px;border-radius:2px;font-weight:500}
+.store-search-wrapper{position:relative}
+.reset-area{text-align:center;padding:16px 0 80px}
+.reset-link{color:#999;font-size:11px;cursor:pointer;text-decoration:none}
+.reset-link:hover{color:#f5222d}
+</style>
+</head>
+<body>
+
+<div class="top-bar" id="top-bar">
+  <label><i class="fa-solid fa-user"></i> 当前用户</label>
+  <select id="user-select" onchange="onUserChange()"></select>
+</div>
+
+<!-- ===== PAGE: Main Task List ===== -->
+<div id="page-main" class="page active">
+  <div class="page-header">
+    <button class="back-btn" style="visibility:hidden"><i class="fa-solid fa-arrow-left"></i></button>
+    <h1 class="page-title">我的借样任务</h1>
+  </div>
+  <div class="tab-bar" id="main-tab-bar">
+    <div class="tab-item active" data-tab="pending" onclick="switchMainTab('pending')">待收货</div>
+    <div class="tab-item" data-tab="borrowing" onclick="switchMainTab('borrowing')">借样中</div>
+    <div class="tab-item" data-tab="history" onclick="switchMainTab('history')">历史任务</div>
+  </div>
+  <div class="search-bar-wrapper" id="search-bar-wrapper">
+    <div class="search-input-container">
+      <input type="text" class="search-input" id="sku-search-input" placeholder="按商品编码搜索" onkeydown="if(event.key==='Enter')doSkuSearch()" oninput="if(!this.value)clearSearch()">
+      <button class="search-clear-btn" id="search-clear-btn" onclick="clearSearch()" style="display:none"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <button class="search-btn" onclick="doSkuSearch()">搜索</button>
+  </div>
+  <div class="search-results-area" id="search-results-area" style="display:none">
+    <div class="search-results-header">
+      <span id="search-results-title">搜索结果</span>
+      <a href="javascript:clearSearch()" class="search-results-clear">清除搜索</a>
+    </div>
+    <div id="search-results-cards"></div>
+  </div>
+  <div class="tab-content-area active" id="content-pending">
+    <div class="filter-bar" id="filter-pending">
+      <div class="filter-pill active" onclick="setPendingFilter('all')">全部</div>
+      <div class="filter-pill" onclick="setPendingFilter('pending')">待发货</div>
+      <div class="filter-pill" onclick="setPendingFilter('pending_pickup')">自提待提货</div>
+      <div class="filter-pill" onclick="setPendingFilter('in_transit')">发货在途</div>
+    </div>
+    <div class="stat-row" id="pending-stat"></div>
+    <div id="pending-cards"></div>
+  </div>
+  <div class="tab-content-area" id="content-borrowing">
+    <div class="filter-bar" id="filter-borrowing">
+      <div class="filter-pill" onclick="setBorrowingFilter('all')">全部</div>
+      <div class="filter-pill active" onclick="setBorrowingFilter('normal')">未到期</div>
+      <div class="filter-pill" onclick="setBorrowingFilter('overdue')">逾期待还</div>
+    </div>
+    <div class="stat-row" id="borrowing-stat"></div>
+    <div id="borrowing-cards"></div>
+  </div>
+  <div class="tab-content-area" id="content-history">
+    <div class="stat-row" id="history-stat"></div>
+    <div id="history-cards"></div>
+  </div>
+  <div class="bottom-btn-dual">
+    <button class="btn-borrow" onclick="navigateTo('page-borrow')"><i class="fa-solid fa-box"></i> 发起借样</button>
+    <button class="btn-return" onclick="navigateTo('page-return')"><i class="fa-solid fa-rotate-left"></i> 发起还样</button>
+  </div>
+  <div class="reset-area">
+    <a href="javascript:resetAllData()" class="reset-link"><i class="fa-solid fa-rotate"></i> 重置所有数据</a>
+  </div>
+</div>
+
+<!-- ===== PAGE: Borrow Application ===== -->
+<div id="page-borrow" class="page">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+    <h1 class="page-title"><i class="fa-solid fa-box"></i> 直播借样申请</h1>
+  </div>
+  <div class="card">
+    <div class="form-item">
+      <label class="form-label">借样人</label>
+      <input type="text" class="form-input" id="borrow-user-display" disabled>
+    </div>
+    <div class="form-item">
+      <label class="form-label">借入虚店</label>
+      <div class="search-select-wrapper">
+        <input type="text" class="form-input" id="borrow-shop-input" placeholder="输入虚店名称或ID搜索..." oninput="filterBorrowShops()" onfocus="filterBorrowShops()" autocomplete="off">
+        <input type="hidden" id="borrow-shop-id">
+        <div class="shop-dropdown" id="borrow-shop-dropdown"></div>
+      </div>
+    </div>
+    <div class="form-item">
+      <label class="form-label">物流方式</label>
+      <div class="radio-group">
+        <div class="radio-item"><input type="radio" name="logistics-type" value="express" checked id="radio-express" onchange="toggleBorrowLogistics()"><label for="radio-express">快递</label></div>
+        <div class="radio-item"><input type="radio" name="logistics-type" value="pick_up" id="radio-pickup" onchange="toggleBorrowLogistics()"><label for="radio-pickup">自提</label></div>
+      </div>
+    </div>
+    <div id="express-fields">
+      <div class="form-item"><label class="form-label">收货人</label><input type="text" class="form-input" id="borrow-receiver" placeholder="请选择虚店自动填充"></div>
+      <div class="form-item"><label class="form-label">手机号</label><input type="text" class="form-input" id="borrow-phone" placeholder="请选择虚店自动填充"></div>
+      <div class="form-item"><label class="form-label">收货地址</label><input type="text" class="form-input" id="borrow-address" placeholder="请选择虚店自动填充"></div>
+    </div>
+    <div class="form-item" id="pickup-store-field" style="display:none">
+      <label class="form-label">自提门店</label>
+      <div class="store-search-wrapper">
+        <input type="text" class="form-input" id="borrow-store-input" placeholder="输入门店名称或编码搜索..." oninput="filterBorrowStores()" onfocus="filterBorrowStores()" autocomplete="off">
+        <input type="hidden" id="borrow-store-id">
+        <div class="store-dropdown" id="borrow-store-dropdown"></div>
+      </div>
+      <div id="borrow-store-selected" style="display:none;margin-top:4px"></div>
+    </div>
+    <div class="form-item">
+      <label class="form-label">样品清单</label>
+      <table class="sample-table" id="sample-table">
+        <thead><tr><th>商品编码</th><th>尺码</th><th>数量</th><th>操作</th></tr></thead>
+        <tbody id="sample-tbody"></tbody>
+      </table>
+      <div class="sample-summary" id="sample-summary">共0件商品</div>
+      <button class="btn btn-link" type="button" onclick="addSampleRow()">+ 添加样品</button>
+    </div>
+    <div class="form-item">
+      <label class="form-label">期望到货日（选填）</label>
+      <input type="date" class="form-input" id="borrow-expected-date">
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:bold" onclick="submitBorrow()">提交申请</button>
+  </div>
+</div>
+
+<!-- ===== PAGE: Task Detail ===== -->
+<div id="page-detail" class="page">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+    <h1 class="page-title">任务详情</h1>
+  </div>
+  <div id="detail-content"></div>
+  <div style="text-align:center;margin-top:16px">
+    <a href="javascript:navigateTo('page-main')" style="color:#1677FF;font-size:14px">返回任务列表</a>
+  </div>
+</div>
+
+<!-- ===== PAGE: Universal Return ===== -->
+<div id="page-return" class="page">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+    <h1 class="page-title"><i class="fa-solid fa-rotate-left"></i> 发起还样</h1>
+  </div>
+  <div class="card">
+    <div class="form-item" style="margin-bottom:0">
+      <label class="form-label">选择虚店</label>
+      <div class="search-select-wrapper">
+        <input type="text" class="form-input" id="return-shop-input" placeholder="输入虚店名称或ID搜索..." oninput="filterReturnShops()" onfocus="filterReturnShops()" autocomplete="off">
+        <input type="hidden" id="return-shop-id">
+        <div class="shop-dropdown" id="return-shop-dropdown"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="return-items-card" style="display:none">
+    <div style="font-size:13px;font-weight:bold;margin-bottom:8px;color:#333;display:flex;justify-content:space-between;align-items:center">
+      <span>可还商品清单</span>
+      <button class="btn-import" onclick="showImportModal()"><i class="fa-solid fa-file-import"></i> 批量导入SKU</button>
+    </div>
+    <div style="margin-bottom:8px">
+      <input type="text" class="form-input" id="return-sku-filter" placeholder="按货号模糊搜索..." oninput="filterReturnItems()" style="font-size:13px;padding:8px 12px">
+    </div>
+    <div id="return-items-list"></div>
+  </div>
+  <div class="return-method-selector" id="return-method-box" style="display:none">
+    <div class="method-label">归还方式（整批）</div>
+    <div class="method-options">
+      <div class="method-option selected" id="method-express" onclick="switchReturnMethod('express')"><i class="fa-solid fa-box"></i> 快递归还</div>
+      <div class="method-option" id="method-inperson" onclick="switchReturnMethod('in_person')"><i class="fa-solid fa-store"></i> 自提归还</div>
+    </div>
+  </div>
+  <div class="card" id="return-store-card" style="display:none">
+    <div class="form-item" style="margin-bottom:0">
+      <label class="form-label">归还门店</label>
+      <div class="store-search-wrapper">
+        <input type="text" class="form-input" id="return-store-input" placeholder="输入门店名称或编码搜索..." oninput="filterReturnStores()" onfocus="filterReturnStores()" autocomplete="off">
+        <input type="hidden" id="return-store-id">
+        <div class="store-dropdown" id="return-store-dropdown"></div>
+      </div>
+      <div id="return-store-selected" style="display:none;margin-top:4px"></div>
+    </div>
+  </div>
+  <div class="return-summary-bar" id="return-summary-bar" style="display:none">
+    <span>已选 <span class="summary-count" id="summary-sku-count">0</span> 种商品</span>
+    <span>合计 <span class="summary-count" id="summary-qty-count">0</span> 件</span>
+  </div>
+  <div id="return-submit-area" style="display:none">
+    <button class="btn btn-primary" id="return-submit-btn" style="width:100%;padding:12px;font-size:15px;font-weight:bold" onclick="submitReturn()">确认还样（0件）</button>
+  </div>
+</div>
+
+<!-- ===== PAGE: Return Result ===== -->
+<div id="page-return-result" class="page">
+  <div class="page-header">
+    <button class="back-btn" onclick="navigateTo('page-main')"><i class="fa-solid fa-arrow-left"></i> 返回首页</button>
+    <h1 class="page-title">还样提交成功</h1>
+  </div>
+  <div style="text-align:center;padding:20px 0">
+    <div style="font-size:40px"><i class="fa-solid fa-circle-check" style="color:#52c41a"></i></div>
+    <div style="font-size:16px;font-weight:bold;margin-top:8px">还样申请已提交</div>
+  </div>
+  <div class="batch-result-card">
+    <div style="font-size:13px;color:#666;text-align:center">归还批次号</div>
+    <div class="batch-no" id="result-batch-no"></div>
+  </div>
+  <div class="batch-result-card">
+    <div style="font-size:14px;font-weight:bold;margin-bottom:8px">关联借样任务</div>
+    <div id="result-task-list"></div>
+  </div>
+  <div id="result-actions" style="margin-top:16px"></div>
+</div>
+
+<!-- ===== PAGE: Batch Logistics ===== -->
+<div id="page-logistics" class="page">
+  <div class="page-header">
+    <button class="back-btn" onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+    <h1 class="page-title"><i class="fa-solid fa-box"></i> 填写物流单号</h1>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;color:#666;margin-bottom:12px">批次号：<span id="logistics-batch-no" style="color:#1677FF;font-weight:bold"></span></div>
+    <div style="font-size:13px;color:#666;margin-bottom:16px" id="logistics-batch-desc"></div>
+    <div class="form-item">
+      <label class="form-label">快递公司</label>
+      <select class="form-select" id="logistics-company">
+        <option value="顺丰速运">顺丰速运</option>
+        <option value="中通快递">中通快递</option>
+        <option value="圆通速递">圆通速递</option>
+        <option value="韵达快递">韵达快递</option>
+        <option value="申通快递">申通快递</option>
+      </select>
+    </div>
+    <div class="form-item">
+      <label class="form-label">快递单号</label>
+      <input type="text" class="form-input" id="logistics-no" placeholder="请输入快递单号">
+    </div>
+  </div>
+  <button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:bold;margin-top:8px" onclick="submitLogistics()">提交物流信息</button>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-mask" id="pickup-modal">
+  <div class="modal-content">
+    <div class="modal-title"><i class="fa-solid fa-clipboard-check"></i> 确认自提提货</div>
+    <div id="pickup-modal-items"></div>
+    <div class="modal-footer">
+      <button class="btn btn-link" onclick="closeModal('pickup-modal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmPickupSubmit()">确认提货</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="import-modal">
+  <div class="modal-content" style="width:340px">
+    <div class="modal-title"><i class="fa-solid fa-file-import"></i> 批量导入SKU</div>
+    <div class="import-tabs">
+      <div class="import-tab active" id="import-tab-text" onclick="switchImportTab('text')">粘贴文本</div>
+      <div class="import-tab" id="import-tab-file" onclick="switchImportTab('file')">上传Excel</div>
+    </div>
+    <div id="import-text-area">
+      <textarea class="form-textarea" id="import-paste-text" placeholder="每行格式：商品编码 尺码 数量&#10;例如：&#10;A001 38 1&#10;A002 39 2" style="min-height:120px;margin-top:12px;font-size:13px"></textarea>
+    </div>
+    <div id="import-file-area" style="display:none">
+      <div style="border:2px dashed #d9d9d9;border-radius:8px;padding:20px;text-align:center;margin:12px 0;cursor:pointer" onclick="simulateFileUpload()">
+        <div style="font-size:24px"><i class="fa-solid fa-file-excel" style="color:#52c41a"></i></div>
+        <div style="font-size:13px;color:#666;margin-top:4px">点击上传Excel文件</div>
+        <div style="font-size:11px;color:#999">模板：商品编码、尺码、本次归还数量</div>
+      </div>
+    </div>
+    <div id="import-error-area" style="display:none;margin-top:8px;background:#fff1f0;padding:8px;border-radius:4px;font-size:12px;color:#f5222d;max-height:100px;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-link" onclick="closeModal('import-modal')">取消</button>
+      <button class="btn btn-primary" onclick="executeImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SECTION 1: DEFAULT DATA
+// ============================================================
+var DEFAULT_USERS = [
+  { userId: 'zhangsan', userName: '张三', virtualShopIds: ['DYZB01'] },
+  { userId: 'lisi', userName: '李四', virtualShopIds: ['DYZB02', 'DYZB03'] }
+];
+var DEFAULT_VIRTUAL_SHOPS = [
+  { virtualShopId: 'DYZB01', name: '抖音直播间01', address: '上海市徐汇区XX路1号', contact: '张三 13800001111' },
+  { virtualShopId: 'DYZB02', name: '抖音直播间02', address: '北京市朝阳区XX路2号', contact: '李四 13900002222' },
+  { virtualShopId: 'DYZB03', name: '快手直播间01', address: '杭州市滨江区XX路3号', contact: '李四 13900002222' }
+];
+var DEFAULT_STORES = [
+  { storeId: 'ST001', name: '上海万象城店', address: '闵行区吴中路1599号', status: 'active' },
+  { storeId: 'ST002', name: '北京三里屯店', address: '朝阳区三里屯路19号', status: 'active' },
+  { storeId: 'ST003', name: '杭州银泰店', address: '西湖区延安路258号', status: 'active' },
+  { storeId: 'ST004', name: '深圳万象天地店', address: '南山区深南大道9668号', status: 'active' },
+  { storeId: 'ST005', name: '成都春熙路店', address: '锦江区春熙路68号', status: 'active' },
+  { storeId: 'ST006', name: '广州天河城店', address: '天河区天河路208号', status: 'active' },
+  { storeId: 'ST007', name: '已关门测试店', address: '某地', status: 'closed' }
+];
+var DEFAULT_INVENTORY = [
+  { sku: 'A001', size: '38', storeId: 'ST001', qty: 10 },
+  { sku: 'A001', size: '39', storeId: 'ST001', qty: 5 },
+  { sku: 'A001', size: '38', storeId: 'ST002', qty: 8 },
+  { sku: 'A001', size: '40', storeId: 'ST003', qty: 3 },
+  { sku: 'A002', size: '39', storeId: 'ST001', qty: 15 },
+  { sku: 'A002', size: '40', storeId: 'ST002', qty: 7 },
+  { sku: 'A002', size: '38', storeId: 'ST005', qty: 6 },
+  { sku: 'B001', size: '37', storeId: 'ST003', qty: 12 },
+  { sku: 'B001', size: '38', storeId: 'ST001', qty: 4 },
+  { sku: 'B002', size: '36', storeId: 'ST002', qty: 9 },
+  { sku: 'C001', size: '40', storeId: 'ST004', qty: 6 },
+  { sku: 'C001', size: '41', storeId: 'ST005', qty: 4 },
+  { sku: 'C002', size: '42', storeId: 'ST001', qty: 8 },
+  { sku: 'D001', size: '38', storeId: 'ST006', qty: 5 },
+  { sku: 'D001', size: '39', storeId: 'ST006', qty: 3 }
+];
+
+function buildDefaultTasks() {
+  var today = new Date();
+  var fmt = function(d) { return d.toISOString().slice(0, 10); };
+  var daysAgo = function(n) { var d = new Date(today); d.setDate(d.getDate() - n); return fmt(d); };
+  var daysLater = function(n) { var d = new Date(today); d.setDate(d.getDate() + n); return fmt(d); };
+  return {
+    'BJ20260601001': {
+      taskId: 'BJ20260601001', type: 'express', status: 'pending',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'A001', size: '38', qty: 1, picked: 0, returned: 0 },{ sku: 'A002', size: '39', qty: 2, picked: 0, returned: 0 }],
+      applyTime: daysAgo(2) + 'T10:00:00Z', borrowDate: '', dueDate: '',
+      logisticsNo: '', logisticsCompany: '', pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260601-001', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '张三', receiverPhone: '13800001111', receiverAddress: '上海市徐汇区XX路1号'
+    },
+    'BJ20260605002': {
+      taskId: 'BJ20260605002', type: 'express', status: 'in_transit',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'B001', size: '37', qty: 3, picked: 0, returned: 0 }],
+      applyTime: daysAgo(5) + 'T14:00:00Z', borrowDate: daysAgo(4), dueDate: '',
+      logisticsNo: 'SF1234567890', logisticsCompany: '顺丰速运',
+      pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260605-002', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '张三', receiverPhone: '13800001111', receiverAddress: '上海市徐汇区XX路1号'
+    },
+    'BJ20260520003': {
+      taskId: 'BJ20260520003', type: 'express', status: 'borrowing',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'C001', size: '40', qty: 2, picked: 2, returned: 0 },{ sku: 'A002', size: '39', qty: 1, picked: 1, returned: 0 }],
+      applyTime: daysAgo(20) + 'T09:00:00Z', borrowDate: daysAgo(18), dueDate: daysLater(5),
+      logisticsNo: 'ZT9876543210', logisticsCompany: '中通快递',
+      pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260520-003', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '张三', receiverPhone: '13800001111', receiverAddress: '上海市徐汇区XX路1号'
+    },
+    'BJ20260501004': {
+      taskId: 'BJ20260501004', type: 'express', status: 'borrowing',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'D001', size: '38', qty: 1, picked: 1, returned: 0 }],
+      applyTime: daysAgo(40) + 'T11:00:00Z', borrowDate: daysAgo(38), dueDate: daysAgo(10),
+      logisticsNo: 'YD5566778899', logisticsCompany: '韵达快递',
+      pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260501-004', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '张三', receiverPhone: '13800001111', receiverAddress: '上海市徐汇区XX路1号'
+    },
+    'BJ20260610005': {
+      taskId: 'BJ20260610005', type: 'pick_up', status: 'pending_pickup',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'A001', size: '38', qty: 2, picked: 0, returned: 0 },{ sku: 'B002', size: '36', qty: 1, picked: 0, returned: 0 }],
+      applyTime: daysAgo(1) + 'T16:00:00Z', borrowDate: daysAgo(1), dueDate: '',
+      logisticsNo: '', logisticsCompany: '',
+      pickupStoreId: 'ST001', pickupStoreName: '上海万象城店', pickupStoreAddress: '闵行区吴中路1599号',
+      gmsTransferNo: 'GMS-T-20260610-005', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '', receiverPhone: '', receiverAddress: ''
+    },
+    'BJ20260525006': {
+      taskId: 'BJ20260525006', type: 'pick_up', status: 'borrowing',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'A001', size: '39', qty: 1, picked: 1, returned: 0 }],
+      applyTime: daysAgo(15) + 'T08:00:00Z', borrowDate: daysAgo(14), dueDate: daysLater(8),
+      logisticsNo: '', logisticsCompany: '',
+      pickupStoreId: 'ST002', pickupStoreName: '北京三里屯店', pickupStoreAddress: '朝阳区三里屯路19号',
+      gmsTransferNo: 'GMS-T-20260525-006', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '', receiverPhone: '', receiverAddress: ''
+    },
+    'BJ20260510007': {
+      taskId: 'BJ20260510007', type: 'express', status: 'completed',
+      userId: 'zhangsan', virtualShopId: 'DYZB01', virtualShopName: '抖音直播间01',
+      items: [{ sku: 'C002', size: '42', qty: 1, picked: 1, returned: 1 }],
+      applyTime: daysAgo(35) + 'T10:00:00Z', borrowDate: daysAgo(33), dueDate: daysAgo(19),
+      logisticsNo: 'SF1122334455', logisticsCompany: '顺丰速运',
+      pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260510-007', gmsReturnTransferNo: 'GMS-R-20260520-007',
+      returnBatchNo: 'RT20260520000001', returnMethod: 'express', returnStatus: 'completed',
+      returnLogisticsNo: '顺丰速运 SF9988776655', returnLogisticsCompany: '顺丰速运',
+      returnStoreId: '', returnStoreName: '', completedTime: daysAgo(15) + 'T10:30:00Z',
+      receiverName: '张三', receiverPhone: '13800001111', receiverAddress: '上海市徐汇区XX路1号'
+    },
+    'BJ20260608008': {
+      taskId: 'BJ20260608008', type: 'express', status: 'borrowing',
+      userId: 'lisi', virtualShopId: 'DYZB02', virtualShopName: '抖音直播间02',
+      items: [{ sku: 'A001', size: '38', qty: 2, picked: 2, returned: 0 }],
+      applyTime: daysAgo(7) + 'T09:00:00Z', borrowDate: daysAgo(5), dueDate: daysLater(9),
+      logisticsNo: 'YT5544332211', logisticsCompany: '圆通速递',
+      pickupStoreId: '', pickupStoreName: '', pickupStoreAddress: '',
+      gmsTransferNo: 'GMS-T-20260608-008', gmsReturnTransferNo: '',
+      returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+      returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+      receiverName: '李四', receiverPhone: '13900002222', receiverAddress: '北京市朝阳区XX路2号'
+    }
+  };
+}
+
+// ============================================================
+// SECTION 2: GMS MOCK API (预留真实接口替换位置)
+// ============================================================
+window.gmsApi = {
+  // 正式对接：替换为 fetch('/api/gms/checkStock', {method:'POST', body:JSON.stringify({sku,size})})
+  checkStock: function(sku, size) {
+    console.log('[GMS Mock] checkStock(' + sku + ', ' + size + ')');
+    var inv = DAL.getInventory();
+    var matches = inv.filter(function(i) { return i.sku === sku && i.size === size && i.qty > 0; });
+    var stores = matches.map(function(m) { return { storeId: m.storeId, qty: m.qty }; });
+    console.log('[GMS Mock] result:', { hasStock: matches.length > 0, stores: stores });
+    return { hasStock: matches.length > 0, stores: stores };
+  },
+  // 正式对接：替换为 fetch('/api/gms/createTransfer', {method:'POST', body:JSON.stringify(task)})
+  createTransfer: function(task) {
+    var no = 'GMS-T-' + Date.now();
+    console.log('[GMS Mock] createTransfer(' + task.taskId + ') => ' + no);
+    return { success: true, transferNo: no };
+  },
+  // 正式对接：替换为 fetch('/api/gms/queryTransferStatus?no=' + transferNo)
+  queryTransferStatus: function(transferNo) {
+    console.log('[GMS Mock] queryTransferStatus(' + transferNo + ')');
+    return { status: 'shipped', logisticsNo: 'SF' + Date.now() };
+  },
+  // 正式对接：替换为 fetch('/api/gms/confirmReceive', {method:'POST', body:JSON.stringify({transferNo})})
+  confirmReceive: function(transferNo) {
+    console.log('[GMS Mock] confirmReceive(' + transferNo + ')');
+    return { success: true };
+  },
+  // 正式对接：替换为 fetch('/api/gms/createReturnTransfer', {method:'POST', body:JSON.stringify({task,returnMethod,returnStore})})
+  createReturnTransfer: function(task, returnMethod, returnStore) {
+    var no = 'GMS-R-' + Date.now();
+    console.log('[GMS Mock] createReturnTransfer(' + task.taskId + ', ' + returnMethod + ', ' + returnStore + ') => ' + no);
+    return { success: true, transferNo: no };
+  },
+  // 正式对接：替换为 fetch('/api/gms/updateLogistics', {method:'POST', body:JSON.stringify({returnBatchNo,logisticsNo,company})})
+  updateLogistics: function(returnBatchNo, logisticsNo, company) {
+    console.log('[GMS Mock] updateLogistics(' + returnBatchNo + ', ' + logisticsNo + ', ' + company + ')');
+    return { success: true };
+  },
+  // 正式对接：替换为 fetch('/api/gms/confirmStoreReceive', {method:'POST', body:JSON.stringify({transferNo})})
+  confirmStoreReceive: function(transferNo) {
+    console.log('[GMS Mock] confirmStoreReceive(' + transferNo + ')');
+    return { success: true };
+  }
+};
+
+// ============================================================
+// SECTION 3: DATA ACCESS LAYER
+// ============================================================
+var DAL = {
+  _k: { tasks: 'borrow_tasks', users: 'users', shops: 'borrow_virtualShops', stores: 'stores', inv: 'inventory_mock' },
+  initDefaults: function() {
+    if (!localStorage.getItem(DAL._k.tasks)) localStorage.setItem(DAL._k.tasks, JSON.stringify(buildDefaultTasks()));
+    if (!localStorage.getItem(DAL._k.users)) localStorage.setItem(DAL._k.users, JSON.stringify(DEFAULT_USERS));
+    if (!localStorage.getItem(DAL._k.shops)) localStorage.setItem(DAL._k.shops, JSON.stringify(DEFAULT_VIRTUAL_SHOPS));
+    if (!localStorage.getItem(DAL._k.stores)) localStorage.setItem(DAL._k.stores, JSON.stringify(DEFAULT_STORES));
+    if (!localStorage.getItem(DAL._k.inv)) localStorage.setItem(DAL._k.inv, JSON.stringify(DEFAULT_INVENTORY));
+  },
+  loadTasks: function() { try { return JSON.parse(localStorage.getItem(DAL._k.tasks)) || {}; } catch(e) { return {}; } },
+  saveTasks: function(t) { localStorage.setItem(DAL._k.tasks, JSON.stringify(t)); },
+  getTask: function(id) { return DAL.loadTasks()[id] || null; },
+  updateTask: function(id, upd) { var t = DAL.loadTasks(); if (t[id]) { for (var k in upd) t[id][k] = upd[k]; DAL.saveTasks(t); } return t[id]; },
+  addTask: function(task) { var t = DAL.loadTasks(); t[task.taskId] = task; DAL.saveTasks(t); },
+  getUsers: function() { try { return JSON.parse(localStorage.getItem(DAL._k.users)) || []; } catch(e) { return []; } },
+  getVirtualShops: function() { try { return JSON.parse(localStorage.getItem(DAL._k.shops)) || []; } catch(e) { return []; } },
+  getStores: function() { try { return JSON.parse(localStorage.getItem(DAL._k.stores)) || []; } catch(e) { return []; } },
+  getInventory: function() { try { return JSON.parse(localStorage.getItem(DAL._k.inv)) || []; } catch(e) { return []; } },
+  resetAll: function() { for (var k in DAL._k) localStorage.removeItem(DAL._k[k]); DAL.initDefaults(); }
+};
+
+// ============================================================
+// SECTION 4: APP STATE
+// ============================================================
+var S = {
+  user: 'zhangsan', tab: 'pending', pFilter: 'all', bFilter: 'normal',
+  searching: false, stack: ['page-main'], detailId: null,
+  retShop: '', retMethod: 'express', retItems: [], retStoreId: '', retStoreName: '',
+  batchNo: '', allocs: [], allocMethod: ''
+};
+
+// ============================================================
+// SECTION 5: UTILITIES
+// ============================================================
+function getUser() {
+  var users = DAL.getUsers();
+  for (var i = 0; i < users.length; i++) if (users[i].userId === S.user) return users[i];
+  return users[0] || { userId: '', userName: '未知', virtualShopIds: [] };
+}
+function getShop(id) {
+  var all = DAL.getVirtualShops();
+  for (var i = 0; i < all.length; i++) if (all[i].virtualShopId === id) return all[i];
+  return null;
+}
+function getStore(id) {
+  var all = DAL.getStores();
+  for (var i = 0; i < all.length; i++) if (all[i].storeId === id) return all[i];
+  return null;
+}
+function genTaskId() {
+  var n = new Date();
+  return 'BJ' + n.getFullYear() + String(n.getMonth()+1).padStart(2,'0') + String(n.getDate()).padStart(2,'0') + String(n.getHours()).padStart(2,'0') + String(n.getMinutes()).padStart(2,'0') + String(Math.floor(Math.random()*10000)).padStart(4,'0');
+}
+function genBatchNo() {
+  var n = new Date();
+  return 'RT' + n.getFullYear() + String(n.getMonth()+1).padStart(2,'0') + String(n.getDate()).padStart(2,'0') + String(Math.floor(Math.random()*1000000)).padStart(6,'0');
+}
+function isOverdue(t) { if (!t.dueDate) return false; var d = new Date(t.dueDate), n = new Date(); n.setHours(0,0,0,0); return n > d; }
+function overdueDays(t) { if (!t.dueDate) return 0; return Math.max(0, Math.floor((new Date() - new Date(t.dueDate)) / 864e5)); }
+function remainDays(t) { if (!t.dueDate) return -1; var d = new Date(t.dueDate), n = new Date(); n.setHours(0,0,0,0); return Math.max(0, Math.floor((d - n) / 864e5)); }
+function fmtDate(d) { return d ? d.slice(0, 10) : '-'; }
+function nowISO() { return new Date().toISOString(); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function userTasks() {
+  var all = DAL.loadTasks(), uid = S.user, r = {};
+  for (var id in all) if (all[id].userId === uid) r[id] = all[id];
+  return r;
+}
+function itemDesc(items) {
+  if (!items || !items.length) return '无商品';
+  var total = 0; items.forEach(function(i) { total += i.qty; });
+  return items[0].sku + ' ' + items[0].size + ' x' + items[0].qty + (items.length > 1 ? ' 等' : '') + ' 共' + total + '件';
+}
+function statusInfo(status, task) {
+  var m = {
+    pending: {t:'待发货',i:'🔷',c:'status-pending'}, in_transit: {t:'发货在途',i:'🚚',c:'status-in-transit'},
+    pending_pickup: {t:'待自提',i:'📦',c:'status-pending-pickup'}, borrowing: {t:'借样中',i:'🔵',c:'status-borrowing'},
+    return_pending: {t:'待归还',i:'🟡',c:'status-return-pending'}, return_logistics_filled: {t:'物流已填',i:'🟢',c:'status-logistics-filled'},
+    store_pending: {t:'待门店收货',i:'🟣',c:'status-store-pending'}, completed: {t:'已完结',i:'✅',c:'status-completed'}
+  };
+  var info = m[status] || {t:status,i:'',c:''};
+  if (status === 'borrowing' && task && isOverdue(task)) return {t:'逾期待还',i:'🔴',c:'status-overdue'};
+  return info;
+}
+
+// ============================================================
+// SECTION 6: NAVIGATION
+// ============================================================
+function navigateTo(pid) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById(pid).classList.add('active');
+  if (S.stack[S.stack.length - 1] !== pid) S.stack.push(pid);
+  window.scrollTo(0, 0);
+  if (pid === 'page-main') renderMain();
+  if (pid === 'page-borrow') initBorrow();
+  if (pid === 'page-return') initReturn();
+}
+function goBack() {
+  if (S.stack.length > 1) {
+    S.stack.pop();
+    var prev = S.stack[S.stack.length - 1];
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById(prev).classList.add('active');
+    window.scrollTo(0, 0);
+    if (prev === 'page-main') renderMain();
+  } else navigateTo('page-main');
+}
+
+// ============================================================
+// SECTION 7: USER SWITCHER
+// ============================================================
+function initUserSelector() {
+  var sel = document.getElementById('user-select'); sel.innerHTML = '';
+  DAL.getUsers().forEach(function(u) {
+    var o = document.createElement('option'); o.value = u.userId; o.textContent = u.userName + ' (' + u.userId + ')'; sel.appendChild(o);
+  });
+  sel.value = S.user;
+}
+function onUserChange() {
+  S.user = document.getElementById('user-select').value;
+  S.pFilter = 'all'; S.bFilter = 'normal'; S.searching = false;
+  clearSearch(); renderMain();
+}
+
+// ============================================================
+// SECTION 8: MAIN PAGE RENDERING
+// ============================================================
+function renderMain() { renderPending(); renderBorrowing(); renderHistory(); }
+
+function switchMainTab(tab) {
+  S.tab = tab;
+  document.querySelectorAll('#main-tab-bar .tab-item').forEach(function(el) { el.classList.toggle('active', el.getAttribute('data-tab') === tab); });
+  document.getElementById('content-pending').classList.toggle('active', tab === 'pending');
+  document.getElementById('content-borrowing').classList.toggle('active', tab === 'borrowing');
+  document.getElementById('content-history').classList.toggle('active', tab === 'history');
+  if (tab === 'pending') renderPending(); if (tab === 'borrowing') renderBorrowing(); if (tab === 'history') renderHistory();
+}
+
+function setPendingFilter(f) {
+  S.pFilter = f;
+  var pills = document.querySelectorAll('#filter-pending .filter-pill');
+  var map = {all:0,pending:1,pending_pickup:2,in_transit:3};
+  pills.forEach(function(p, i) { p.classList.toggle('active', i === map[f]); });
+  renderPending();
+}
+function setBorrowingFilter(f) {
+  S.bFilter = f;
+  var pills = document.querySelectorAll('#filter-borrowing .filter-pill');
+  var map = {all:0,normal:1,overdue:2};
+  pills.forEach(function(p, i) { p.classList.toggle('active', i === map[f]); });
+  renderBorrowing();
+}
+
+function renderPending() {
+  var tasks = userTasks(), c = document.getElementById('pending-cards'), html = '', count = 0;
+  for (var id in tasks) {
+    var t = tasks[id];
+    if (['pending','in_transit','pending_pickup'].indexOf(t.status) === -1) continue;
+    if (S.pFilter !== 'all' && t.status !== S.pFilter) continue;
+    count++; html += taskCard(id, t);
+  }
+  c.innerHTML = html || '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-clipboard-list"></i></div>暂无待收货任务</div>';
+  document.getElementById('pending-stat').textContent = '待收货：' + count + '个任务';
+}
+
+function renderBorrowing() {
+  var tasks = userTasks(), c = document.getElementById('borrowing-cards'), html = '', count = 0;
+  var borrowingStatuses = ['borrowing', 'return_pending', 'return_logistics_filled', 'store_pending'];
+  for (var id in tasks) {
+    var t = tasks[id];
+    if (borrowingStatuses.indexOf(t.status) === -1) continue;
+    var od = (t.status === 'borrowing' && isOverdue(t));
+    if (S.bFilter === 'normal' && od) continue;
+    if (S.bFilter === 'overdue' && !od) continue;
+    count++; html += taskCard(id, t);
+  }
+  c.innerHTML = html || '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-box-open"></i></div>暂无借样中任务</div>';
+  document.getElementById('borrowing-stat').textContent = '借样中：' + count + '个任务';
+}
+
+function renderHistory() {
+  var tasks = userTasks(), c = document.getElementById('history-cards'), html = '', count = 0;
+  for (var id in tasks) { if (tasks[id].status !== 'completed') continue; count++; html += taskCard(id, tasks[id]); }
+  c.innerHTML = html || '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>暂无历史任务</div>';
+  document.getElementById('history-stat').textContent = '历史记录：' + count + '个任务';
+}
+
+function taskCard(taskId, task) {
+  var si = statusInfo(task.status, task), od = (task.status === 'borrowing' && isOverdue(task));
+  var cls = od ? 'card card-overdue' : 'card';
+  var lines = '<div>' + itemDesc(task.items) + '</div>';
+  if (['pending','in_transit','pending_pickup'].indexOf(task.status) >= 0) lines += '<div>申请时间：' + fmtDate(task.applyTime) + '</div>';
+  if (task.borrowDate && task.status !== 'pending') lines += '<div>借出日：' + task.borrowDate + '</div>';
+  if (task.status === 'borrowing' && task.dueDate) {
+    if (od) lines += '<div>预计归还：' + task.dueDate + ' <span class="red-text">超期' + overdueDays(task) + '天</span></div>';
+    else lines += '<div>预计归还：' + task.dueDate + ' 剩余' + remainDays(task) + '天</div>';
+  }
+  if (task.type === 'pick_up' && task.pickupStoreName) lines += '<div>自提门店：' + task.pickupStoreName + '</div>';
+  if (task.status === 'in_transit' && task.logisticsNo) lines += '<div style="color:#fa8c16"><i class="fa-solid fa-truck"></i> 物流：' + task.logisticsNo + '</div>';
+  if (task.status === 'completed' && task.completedTime) lines += '<div>完结日：' + fmtDate(task.completedTime) + '</div>';
+  // Return-in-progress info
+  if (task.returnBatchNo) lines += '<div style="color:#faad14;font-size:12px"><i class="fa-solid fa-rotate-left"></i> 归还批次：' + task.returnBatchNo + '</div>';
+  if (task.returnLogisticsNo) lines += '<div style="color:#13c2c2;font-size:12px"><i class="fa-solid fa-truck"></i> 归还物流：' + task.returnLogisticsNo + '</div>';
+  if (task.returnStoreName) lines += '<div style="color:#722ed1;font-size:12px"><i class="fa-solid fa-store"></i> 归还门店：' + task.returnStoreName + '</div>';
+
+  var act = '<button class="btn btn-link btn-sm" onclick="viewDetail(\'' + taskId + '\')">查看详情</button>';
+  if (task.status === 'pending') act += '<button class="btn btn-outline btn-sm" onclick="simulateShip(\'' + taskId + '\')">模拟发货</button>';
+  else if (task.status === 'in_transit') act += '<button class="btn btn-primary btn-sm" onclick="confirmReceive(\'' + taskId + '\')">确认收货</button>';
+  else if (task.status === 'pending_pickup') act += '<button class="btn btn-primary btn-sm" onclick="openPickupModal(\'' + taskId + '\')">确认自提</button>';
+  else if (task.status === 'borrowing') act += '<button class="btn btn-primary btn-sm" onclick="returnFromTask(\'' + taskId + '\')">发起归还</button>';
+  else if (task.status === 'return_pending') act += '<button class="btn btn-primary btn-sm" onclick="goToLogisticsForTask(\'' + taskId + '\')">填写物流单号</button>';
+  else if (task.status === 'return_logistics_filled') act += '<button class="btn btn-outline btn-sm" onclick="simulateExpressComplete(\'' + taskId + '\')">模拟仓库收货完成</button>';
+  else if (task.status === 'store_pending') act += '<button class="btn btn-success btn-sm" onclick="simulateStoreReceive(\'' + taskId + '\')">模拟门店收货</button>';
+
+  return '<div class="' + cls + '"><div class="card-title"><span class="status-tag ' + si.c + '">' + si.t + si.i + '</span><span style="font-size:12px;color:#999">' + taskId + '</span></div><div class="card-content">' + lines + '</div><div class="card-footer">' + act + '</div></div>';
+}
+
+// ============================================================
+// SECTION 9: TASK DETAIL
+// ============================================================
+function viewDetail(taskId) { S.detailId = taskId; navigateTo('page-detail'); renderDetail(taskId); }
+
+function renderDetail(taskId) {
+  var t = DAL.getTask(taskId);
+  if (!t) { document.getElementById('detail-content').innerHTML = '<div class="card"><div class="card-content">任务不存在</div></div>'; return; }
+  var si = statusInfo(t.status, t), od = (t.status === 'borrowing' && isOverdue(t));
+
+  var itemsH = ''; t.items.forEach(function(it) {
+    itemsH += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f5f5"><span>' + it.sku + ' ' + it.size + '</span><span>借' + it.qty + '件';
+    if (it.picked > 0) itemsH += ' 提' + it.picked + '件';
+    if (it.returned > 0) itemsH += ' 还' + it.returned + '件';
+    itemsH += '</span></div>';
+  });
+
+  var info = '';
+  if (t.type === 'express') {
+    info += '<div><i class="fa-solid fa-truck"></i> 物流方式：快递</div>';
+    if (t.logisticsNo) info += '<div style="color:#fa8c16">物流：' + t.logisticsCompany + ' ' + t.logisticsNo + '</div>';
+    if (t.receiverName) info += '<div>收货人：' + t.receiverName + ' ' + t.receiverPhone + '</div>';
+    if (t.receiverAddress) info += '<div>地址：' + t.receiverAddress + '</div>';
+  } else {
+    info += '<div><i class="fa-solid fa-store"></i> 物流方式：自提</div>';
+    if (t.pickupStoreName) info += '<div>自提门店：' + t.pickupStoreName + '</div>';
+    if (t.pickupStoreAddress) info += '<div>地址：' + t.pickupStoreAddress + '</div>';
+  }
+  if (t.dueDate) {
+    if (od) info += '<div>预计归还：' + t.dueDate + ' <span class="red-text">超期' + overdueDays(t) + '天</span></div>';
+    else info += '<div>预计归还：' + t.dueDate + ' 剩余' + remainDays(t) + '天</div>';
+  }
+  if (t.gmsTransferNo) info += '<div style="color:#999;font-size:12px">GMS调拨单：' + t.gmsTransferNo + '</div>';
+  if (t.gmsReturnTransferNo) info += '<div style="color:#999;font-size:12px">GMS还样单：' + t.gmsReturnTransferNo + '</div>';
+  if (t.returnBatchNo) info += '<div style="color:#999;font-size:12px">归还批次：' + t.returnBatchNo + '</div>';
+  if (t.returnLogisticsNo) info += '<div style="color:#13c2c2;font-size:12px">归还物流：' + t.returnLogisticsNo + '</div>';
+
+  var tl = '<div class="timeline">';
+  tl += '<div class="timeline-item"><div class="timeline-time">' + fmtDate(t.applyTime) + '</div><div class="timeline-content">借样申请提交成功</div></div>';
+  if (t.borrowDate && t.type === 'pick_up') tl += '<div class="timeline-item"><div class="timeline-time">' + t.borrowDate + '</div><div class="timeline-content">到店自提</div></div>';
+  if (t.borrowDate && t.type === 'express' && t.status !== 'pending') tl += '<div class="timeline-item"><div class="timeline-time">' + t.borrowDate + '</div><div class="timeline-content">门店已发货</div></div>';
+  if (t.status === 'borrowing' || t.status === 'completed') tl += '<div class="timeline-item"><div class="timeline-time">' + (t.borrowDate||'-') + '</div><div class="timeline-content">确认收货，开始借样</div></div>';
+  if (t.returnBatchNo) {
+    tl += '<div class="timeline-item"><div class="timeline-time">-</div><div class="timeline-content">发起归还申请，批次号：' + t.returnBatchNo + '</div></div>';
+    if (t.returnLogisticsNo) tl += '<div class="timeline-item"><div class="timeline-time">-</div><div class="timeline-content">物流信息已填写：' + t.returnLogisticsNo + '</div></div>';
+  }
+  if (t.status === 'store_pending') tl += '<div class="timeline-item"><div class="timeline-time">-</div><div class="timeline-content">等待门店收货并质检</div></div>';
+  if (t.status === 'return_pending') tl += '<div class="timeline-item"><div class="timeline-time">-</div><div class="timeline-content">待填写物流单号</div></div>';
+  if (t.status === 'return_logistics_filled') tl += '<div class="timeline-item"><div class="timeline-time">-</div><div class="timeline-content">物流运输中，等待仓库收货</div></div>';
+  if (t.status === 'completed' && t.completedTime) tl += '<div class="timeline-item"><div class="timeline-time">' + fmtDate(t.completedTime) + '</div><div class="timeline-content">商品已销账，任务完结</div></div>';
+  tl += '</div>';
+
+  var act = '';
+  if (t.status === 'pending') act = '<button class="btn btn-outline" onclick="simulateShip(\'' + taskId + '\')">模拟仓库发货</button>';
+  else if (t.status === 'in_transit') act = '<button class="btn btn-primary" onclick="confirmReceive(\'' + taskId + '\')"><i class="fa-solid fa-check"></i> 确认收货</button>';
+  else if (t.status === 'pending_pickup') act = '<button class="btn btn-primary" onclick="openPickupModal(\'' + taskId + '\')"><i class="fa-solid fa-clipboard-check"></i> 确认已自提</button>';
+  else if (t.status === 'borrowing') act = '<button class="btn btn-primary" onclick="returnFromTask(\'' + taskId + '\')"><i class="fa-solid fa-rotate-left"></i> 发起归还</button>';
+  else if (t.status === 'store_pending') act = '<button class="btn btn-success" onclick="simulateStoreReceive(\'' + taskId + '\')"><i class="fa-solid fa-store"></i> 模拟门店收货并质检通过</button>';
+  else if (t.status === 'return_pending') act = '<button class="btn btn-primary" onclick="goToLogisticsForTask(\'' + taskId + '\')"><i class="fa-solid fa-box"></i> 填写物流单号</button>';
+  else if (t.status === 'return_logistics_filled') act = '<div style="color:#13c2c2;font-size:13px;margin-bottom:8px">物流信息已填写，等待仓库收货</div><button class="btn btn-success" onclick="simulateExpressComplete(\'' + taskId + '\')"><i class="fa-solid fa-warehouse"></i> 模拟仓库收货完成</button>';
+
+  document.getElementById('detail-content').innerHTML = '<div class="card"><div class="card-title"><span class="status-tag ' + si.c + '">' + si.t + si.i + '</span><span style="font-size:12px;color:#999">' + taskId + '</span></div><div class="card-content"><div style="margin-bottom:8px">' + info + '</div><div style="font-weight:bold;margin-bottom:8px">商品明细</div>' + itemsH + '<div style="margin-top:16px">' + act + '</div>' + tl + '</div></div>';
+}
+
+// ============================================================
+// SECTION 10: BORROW APPLICATION
+// ============================================================
+function initBorrow() {
+  var u = getUser();
+  document.getElementById('borrow-user-display').value = u.userName + ' / ' + u.userId;
+  document.getElementById('borrow-shop-input').value = '';
+  document.getElementById('borrow-shop-id').value = '';
+  document.getElementById('borrow-shop-dropdown').style.display = 'none';
+  document.getElementById('borrow-store-input').value = '';
+  document.getElementById('borrow-store-id').value = '';
+  document.getElementById('borrow-store-dropdown').style.display = 'none';
+  document.getElementById('borrow-store-selected').style.display = 'none';
+  document.getElementById('borrow-receiver').value = '';
+  document.getElementById('borrow-phone').value = '';
+  document.getElementById('borrow-address').value = '';
+  document.getElementById('borrow-expected-date').value = '';
+  document.querySelector('input[name="logistics-type"][value="express"]').checked = true;
+  toggleBorrowLogistics();
+  var tb = document.getElementById('sample-tbody'); tb.innerHTML = '';
+  addSampleRow('A001', '38', '1'); addSampleRow('A002', '39', '2');
+  renderBorrowShopDD();
+}
+
+function renderBorrowShopDD() {
+  var u = getUser(), all = DAL.getVirtualShops(), dd = document.getElementById('borrow-shop-dropdown'), h = '';
+  all.forEach(function(s) {
+    if (u.virtualShopIds.indexOf(s.virtualShopId) === -1) return;
+    h += '<div class="shop-option" data-id="' + s.virtualShopId + '" onclick="selectBorrowShop(\'' + s.virtualShopId + '\',\'' + s.name.replace(/'/g, "\\'") + '\')">' + s.name + ' <span style="color:#999;font-size:11px">' + s.virtualShopId + '</span></div>';
+  });
+  dd.innerHTML = h || '<div style="padding:8px 12px;color:#999;font-size:13px">无可用虚店</div>';
+}
+
+function filterBorrowShops() {
+  var kw = document.getElementById('borrow-shop-input').value.toLowerCase();
+  var opts = document.querySelectorAll('#borrow-shop-dropdown .shop-option'), vis = false;
+  opts.forEach(function(o) {
+    var t = o.textContent.toLowerCase(), id = (o.getAttribute('data-id') || '').toLowerCase();
+    var m = !kw || t.indexOf(kw) >= 0 || id.indexOf(kw) >= 0;
+    o.style.display = m ? '' : 'none'; if (m) vis = true;
+  });
+  document.getElementById('borrow-shop-dropdown').style.display = vis ? 'block' : 'none';
+}
+
+function selectBorrowShop(shopId, name) {
+  document.getElementById('borrow-shop-input').value = name;
+  document.getElementById('borrow-shop-id').value = shopId;
+  document.getElementById('borrow-shop-dropdown').style.display = 'none';
+  var shop = getShop(shopId);
+  if (shop && shop.contact) {
+    var p = shop.contact.split(' ');
+    document.getElementById('borrow-receiver').value = p[0] || '';
+    document.getElementById('borrow-phone').value = p[1] || '';
+    document.getElementById('borrow-address').value = shop.address || '';
+  }
+}
+
+function toggleBorrowLogistics() {
+  var isE = document.querySelector('input[name="logistics-type"]:checked').value === 'express';
+  document.getElementById('express-fields').style.display = isE ? '' : 'none';
+  document.getElementById('pickup-store-field').style.display = isE ? 'none' : '';
+}
+
+function filterBorrowStores() {
+  var kw = document.getElementById('borrow-store-input').value.toLowerCase();
+  var stores = DAL.getStores(), dd = document.getElementById('borrow-store-dropdown'), h = '';
+  stores.forEach(function(s) {
+    if (s.status !== 'active') return;
+    var nm = s.name.toLowerCase().indexOf(kw) >= 0, im = s.storeId.toLowerCase().indexOf(kw) >= 0;
+    if (!kw || nm || im) {
+      h += '<div class="store-option" onclick="selectBorrowStore(\'' + s.storeId + '\',\'' + s.name.replace(/'/g, "\\'") + '\',\'' + s.address.replace(/'/g, "\\'") + '\')">' + s.name + ' <span class="sid">' + s.storeId + '</span></div>';
+    }
+  });
+  dd.innerHTML = h || '<div style="padding:8px 12px;color:#999;font-size:13px">未找到匹配门店</div>';
+  dd.style.display = 'block';
+}
+
+function selectBorrowStore(id, name, addr) {
+  document.getElementById('borrow-store-input').value = name + ' (' + id + ')';
+  document.getElementById('borrow-store-id').value = id;
+  document.getElementById('borrow-store-dropdown').style.display = 'none';
+  var sel = document.getElementById('borrow-store-selected');
+  sel.innerHTML = '<span class="store-selected-tag"><i class="fa-solid fa-check"></i> ' + name + ' (' + id + ')</span>';
+  sel.style.display = 'block';
+}
+
+function addSampleRow(sku, size, qty) {
+  var tb = document.getElementById('sample-tbody'), tr = document.createElement('tr');
+  tr.innerHTML = '<td><input type="text" class="sample-sku" value="' + (sku||'') + '" placeholder="编码"></td>' +
+    '<td><input type="text" class="sample-size" value="' + (size||'') + '" placeholder="尺码"></td>' +
+    '<td><input type="number" class="sample-qty" value="' + (qty||'') + '" placeholder="数量" min="1" style="width:100%"></td>' +
+    '<td><button class="del-row-btn" type="button" onclick="this.closest(\'tr\').remove();updateSampleSummary()">删除</button></td>';
+  tb.appendChild(tr);
+  tr.querySelectorAll('input').forEach(function(inp) { inp.addEventListener('input', updateSampleSummary); });
+  updateSampleSummary();
+}
+
+function updateSampleSummary() {
+  var rows = document.querySelectorAll('#sample-tbody tr'), total = 0;
+  rows.forEach(function(r) { total += parseInt(r.querySelector('.sample-qty').value) || 0; });
+  document.getElementById('sample-summary').textContent = '共' + total + '件商品';
+}
+
+function getSampleItems() {
+  var rows = document.querySelectorAll('#sample-tbody tr'), items = [];
+  rows.forEach(function(r) {
+    var sku = r.querySelector('.sample-sku').value.trim(), size = r.querySelector('.sample-size').value.trim(), qty = parseInt(r.querySelector('.sample-qty').value) || 0;
+    if (sku && size && qty > 0) items.push({ sku: sku, size: size, qty: qty, picked: 0, returned: 0 });
+  });
+  return items;
+}
+
+function submitBorrow() {
+  var shopId = document.getElementById('borrow-shop-id').value;
+  if (!shopId) { alert('请选择借入虚店'); return; }
+  var logType = document.querySelector('input[name="logistics-type"]:checked').value;
+  var items = getSampleItems();
+  if (!items.length) { alert('请添加样品'); return; }
+  for (var i = 0; i < items.length; i++) {
+    if (!items[i].sku || !items[i].size || !items[i].qty) { alert('请完善第' + (i+1) + '行样品信息'); return; }
+  }
+  var pStoreId = '', pStoreName = '', pStoreAddr = '';
+  if (logType === 'pick_up') {
+    pStoreId = document.getElementById('borrow-store-id').value;
+    if (!pStoreId) { alert('请选择自提门店'); return; }
+    var st = getStore(pStoreId);
+    if (st) { pStoreName = st.name; pStoreAddr = st.address; }
+  }
+  // Stock check
+  for (var j = 0; j < items.length; j++) {
+    var sr = window.gmsApi.checkStock(items[j].sku, items[j].size);
+    if (!sr.hasStock) { alert('商品 ' + items[j].sku + ' ' + items[j].size + ' 库存不足，请调整'); return; }
+  }
+  var taskId = genTaskId(), shop = getShop(shopId), now = nowISO();
+  var task = {
+    taskId: taskId, type: logType, status: logType === 'express' ? 'pending' : 'pending_pickup',
+    userId: S.user, virtualShopId: shopId, virtualShopName: shop ? shop.name : '',
+    items: items, applyTime: now, borrowDate: logType === 'pick_up' ? todayStr() : '', dueDate: '',
+    logisticsNo: '', logisticsCompany: '', pickupStoreId: pStoreId, pickupStoreName: pStoreName, pickupStoreAddress: pStoreAddr,
+    gmsTransferNo: '', gmsReturnTransferNo: '', returnBatchNo: '', returnMethod: '', returnStatus: '', returnedQty: 0,
+    returnLogisticsNo: '', returnLogisticsCompany: '', returnStoreId: '', returnStoreName: '',
+    receiverName: logType === 'express' ? document.getElementById('borrow-receiver').value : '',
+    receiverPhone: logType === 'express' ? document.getElementById('borrow-phone').value : '',
+    receiverAddress: logType === 'express' ? document.getElementById('borrow-address').value : ''
+  };
+  var tr = window.gmsApi.createTransfer(task); task.gmsTransferNo = tr.transferNo;
+  DAL.addTask(task);
+  S.stack = ['page-main', 'page-detail'];
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page-detail').classList.add('active');
+  renderDetail(taskId); window.scrollTo(0, 0);
+}
+
+// ============================================================
+// SECTION 11: EXPRESS SHIP & RECEIVE
+// ============================================================
+function simulateShip(taskId) {
+  var t = DAL.getTask(taskId); if (!t || t.status !== 'pending') return;
+  var ln = 'SF' + String(Math.floor(Math.random() * 9e9) + 1e9);
+  DAL.updateTask(taskId, { status: 'in_transit', borrowDate: todayStr(), logisticsNo: ln, logisticsCompany: '顺丰速运' });
+  alert('任务 ' + taskId + ' 已发货\n物流单号：顺丰速运 ' + ln);
+  renderMain(); if (document.getElementById('page-detail').classList.contains('active')) renderDetail(taskId);
+}
+
+function confirmReceive(taskId) {
+  var t = DAL.getTask(taskId); if (!t || t.status !== 'in_transit') return;
+  window.gmsApi.confirmReceive(t.gmsTransferNo);
+  var items = t.items.map(function(it) { return {sku:it.sku,size:it.size,qty:it.qty,picked:it.qty,returned:it.returned}; });
+  var due = new Date(); due.setDate(due.getDate() + 14);
+  DAL.updateTask(taskId, { status: 'borrowing', items: items, borrowDate: t.borrowDate || todayStr(), dueDate: due.toISOString().slice(0,10) });
+  alert('已确认收货！状态更新为"借样中"\n预计归还：' + due.toISOString().slice(0,10));
+  renderMain(); if (document.getElementById('page-detail').classList.contains('active')) renderDetail(taskId);
+}
+
+// ============================================================
+// SECTION 12: SELF-PICKUP VERIFICATION
+// ============================================================
+function openPickupModal(taskId) {
+  var t = DAL.getTask(taskId); if (!t || t.status !== 'pending_pickup') return;
+  S.detailId = taskId;
+  var h = '';
+  t.items.forEach(function(it, idx) {
+    var rem = it.qty - it.picked;
+    if (rem <= 0) {
+      h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;color:#999;text-decoration:line-through"><span style="flex:1">' + it.sku + ' ' + it.size + '</span><span style="color:#52c41a;text-decoration:none;font-size:12px">已提' + it.picked + '件</span></div>';
+    } else {
+      h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap">' +
+        '<input type="checkbox" class="pk-cb" data-idx="' + idx + '" checked>' +
+        '<span style="flex:1;min-width:80px">' + it.sku + ' ' + it.size + '</span>' +
+        '<span style="color:#999;font-size:12px">应提' + it.qty + ' 待提' + rem + '</span>' +
+        '<input type="number" class="pk-qty" data-idx="' + idx + '" value="' + rem + '" min="1" max="' + rem + '" style="width:52px;text-align:center;padding:4px;border:1px solid #d9d9d9;border-radius:4px">' +
+        '<span style="font-size:12px">件</span></div>';
+    }
+  });
+  document.getElementById('pickup-modal-items').innerHTML = h;
+  openModal('pickup-modal');
+}
+
+function confirmPickupSubmit() {
+  var t = DAL.getTask(S.detailId); if (!t) return;
+  var cbs = document.querySelectorAll('.pk-cb'), has = false, cnt = 0;
+  cbs.forEach(function(cb) {
+    if (cb.checked) {
+      var idx = parseInt(cb.getAttribute('data-idx'));
+      var qi = document.querySelector('.pk-qty[data-idx="' + idx + '"]');
+      if (qi) {
+        var q = parseInt(qi.value) || 0, mx = parseInt(qi.max) || 0;
+        if (q < 1) q = 1; if (q > mx) q = mx;
+        if (q > 0) { t.items[idx].picked += q; cnt += q; has = true; }
+      }
+    }
+  });
+  if (!has) { alert('请至少勾选一件商品'); return; }
+  var allDone = true;
+  t.items.forEach(function(it) { if (it.picked < it.qty) allDone = false; });
+  if (allDone) {
+    var due = new Date(); due.setDate(due.getDate() + 14);
+    DAL.updateTask(S.detailId, { status: 'borrowing', items: t.items, dueDate: due.toISOString().slice(0,10) });
+    closeModal('pickup-modal'); alert('全部商品已确认自提，状态更新为"借样中"');
+  } else {
+    DAL.updateTask(S.detailId, { items: t.items });
+    closeModal('pickup-modal'); alert('本次提货 ' + cnt + ' 件，还有商品待提取');
+  }
+  renderMain(); if (document.getElementById('page-detail').classList.contains('active')) renderDetail(S.detailId);
+}
+
+// ============================================================
+// SECTION 13: UNIVERSAL RETURN
+// ============================================================
+function initReturn() {
+  document.getElementById('return-shop-input').value = '';
+  document.getElementById('return-shop-id').value = '';
+  document.getElementById('return-shop-dropdown').style.display = 'none';
+  document.getElementById('return-items-card').style.display = 'none';
+  document.getElementById('return-method-box').style.display = 'none';
+  document.getElementById('return-store-card').style.display = 'none';
+  document.getElementById('return-summary-bar').style.display = 'none';
+  document.getElementById('return-submit-area').style.display = 'none';
+  document.getElementById('return-sku-filter').value = '';
+  document.getElementById('return-store-input').value = '';
+  document.getElementById('return-store-id').value = '';
+  document.getElementById('return-store-dropdown').style.display = 'none';
+  document.getElementById('return-store-selected').style.display = 'none';
+  S.retShop = ''; S.retMethod = 'express'; S.retItems = []; S.retStoreId = ''; S.retStoreName = '';
+  refreshRetMethod(); renderRetShopDD();
+}
+
+function renderRetShopDD() {
+  var u = getUser(), all = DAL.getVirtualShops(), dd = document.getElementById('return-shop-dropdown'), h = '';
+  all.forEach(function(s) {
+    if (u.virtualShopIds.indexOf(s.virtualShopId) === -1) return;
+    h += '<div class="shop-option" data-id="' + s.virtualShopId + '" onclick="selectRetShop(\'' + s.virtualShopId + '\',\'' + s.name.replace(/'/g, "\\'") + '\')">' + s.name + ' <span style="color:#999;font-size:11px">' + s.virtualShopId + '</span></div>';
+  });
+  dd.innerHTML = h || '<div style="padding:8px 12px;color:#999;font-size:13px">无可用虚店</div>';
+}
+
+function filterReturnShops() {
+  var kw = document.getElementById('return-shop-input').value.toLowerCase();
+  var opts = document.querySelectorAll('#return-shop-dropdown .shop-option'), vis = false;
+  opts.forEach(function(o) {
+    var t = o.textContent.toLowerCase(), id = (o.getAttribute('data-id') || '').toLowerCase();
+    var m = !kw || t.indexOf(kw) >= 0 || id.indexOf(kw) >= 0;
+    o.style.display = m ? '' : 'none'; if (m) vis = true;
+  });
+  document.getElementById('return-shop-dropdown').style.display = vis ? 'block' : 'none';
+}
+
+function selectRetShop(id, name) {
+  document.getElementById('return-shop-input').value = name;
+  document.getElementById('return-shop-id').value = id;
+  document.getElementById('return-shop-dropdown').style.display = 'none';
+  S.retShop = id; S.retMethod = 'express'; S.retStoreId = ''; S.retStoreName = '';
+  refreshRetMethod(); aggregateRetItems();
+}
+
+function aggregateRetItems() {
+  var shopId = S.retShop; if (!shopId) return;
+  var tasks = DAL.loadTasks(), map = {};
+  for (var id in tasks) {
+    var t = tasks[id];
+    if (t.virtualShopId !== shopId || t.status !== 'borrowing') continue;
+    t.items.forEach(function(it) {
+      var avail = it.qty - it.returned; if (avail <= 0) return;
+      var key = it.sku + '|' + it.size;
+      if (!map[key]) map[key] = { sku: it.sku, size: it.size, totalQty: 0, storeName: t.pickupStoreName || '', isPickup: t.type === 'pick_up', refs: [] };
+      map[key].totalQty += avail;
+      map[key].refs.push({ taskId: id, available: avail, borrowDate: t.borrowDate });
+      if (t.type === 'pick_up' && t.pickupStoreName) map[key].storeName = t.pickupStoreName;
+    });
+  }
+  S.retItems = Object.keys(map).map(function(k) { return map[k]; });
+  renderRetItems();
+}
+
+function renderRetItems() {
+  var items = S.retItems, card = document.getElementById('return-items-card'), c = document.getElementById('return-items-list');
+  if (!items.length) {
+    card.style.display = 'block';
+    c.innerHTML = '<div style="text-align:center;color:#999;padding:20px">该虚店下暂无可还商品</div>';
+    document.getElementById('return-method-box').style.display = 'none';
+    document.getElementById('return-summary-bar').style.display = 'none';
+    document.getElementById('return-submit-area').style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+  document.getElementById('return-method-box').style.display = 'block';
+  document.getElementById('return-summary-bar').style.display = 'flex';
+  document.getElementById('return-submit-area').style.display = 'block';
+  refreshRetMethod();
+  var h = '';
+  items.forEach(function(it, idx) {
+    var st = (it.isPickup && it.storeName) ? '<div class="return-item-store">来源门店：' + it.storeName + '</div>' : '';
+    h += '<div class="return-item-row">' +
+      '<input type="checkbox" class="ret-cb" data-idx="' + idx + '" onchange="updateRetSummary()">' +
+      '<div class="return-item-info"><div class="return-item-sku">' + it.sku + ' ' + it.size + '</div>' + st + '</div>' +
+      '<div class="return-item-qty">可还 ' + it.totalQty + ' 件</div>' +
+      '<input type="number" class="return-qty-input ret-qty" data-idx="' + idx + '" value="' + it.totalQty + '" min="0" max="' + it.totalQty + '" onfocus="autoCheckRet(this)" oninput="autoCheckRet(this);updateRetSummary()">' +
+      '</div>';
+  });
+  c.innerHTML = h;
+  updateRetSummary();
+}
+
+function autoCheckRet(inp) {
+  var idx = inp.getAttribute('data-idx'), cb = document.querySelector('.ret-cb[data-idx="' + idx + '"]');
+  if (cb && !cb.checked && (parseInt(inp.value) || 0) > 0) cb.checked = true;
+}
+
+function filterReturnItems() {
+  var kw = document.getElementById('return-sku-filter').value.toLowerCase();
+  document.querySelectorAll('#return-items-list .return-item-row').forEach(function(r) {
+    var s = r.querySelector('.return-item-sku');
+    if (s) r.style.display = (!kw || s.textContent.toLowerCase().indexOf(kw) >= 0) ? '' : 'none';
+  });
+}
+
+function switchReturnMethod(m) {
+  if (S.retMethod === m) return;
+  S.retMethod = m;
+  document.querySelectorAll('.ret-cb').forEach(function(cb) { cb.checked = false; });
+  document.querySelectorAll('.ret-qty').forEach(function(i) { i.value = i.max; });
+  S.retStoreId = ''; S.retStoreName = '';
+  document.getElementById('return-store-input').value = '';
+  document.getElementById('return-store-id').value = '';
+  document.getElementById('return-store-selected').style.display = 'none';
+  updateRetSummary(); refreshRetMethod();
+  alert('归还方式已切换，已清空商品选择，请重新勾选。');
+}
+
+function refreshRetMethod() {
+  var has = !!S.retShop;
+  document.getElementById('return-method-box').style.display = has ? 'block' : 'none';
+  document.getElementById('return-store-card').style.display = (has && S.retMethod === 'in_person') ? 'block' : 'none';
+  document.getElementById('method-express').classList.toggle('selected', S.retMethod === 'express');
+  document.getElementById('method-inperson').classList.toggle('selected', S.retMethod === 'in_person');
+}
+
+function updateRetSummary() {
+  var skuC = 0, qtyC = 0;
+  document.querySelectorAll('.ret-cb').forEach(function(cb) {
+    if (cb.checked) {
+      var idx = parseInt(cb.getAttribute('data-idx'));
+      var qi = document.querySelector('.ret-qty[data-idx="' + idx + '"]');
+      if (qi) {
+        var q = parseInt(qi.value) || 0, it = S.retItems[idx];
+        if (it && q > it.totalQty) q = it.totalQty;
+        if (q > 0) { skuC++; qtyC += q; }
+      }
+    }
+  });
+  document.getElementById('summary-sku-count').textContent = skuC;
+  document.getElementById('summary-qty-count').textContent = qtyC;
+  document.getElementById('return-submit-btn').textContent = '确认还样（' + qtyC + '件）';
+}
+
+function filterReturnStores() {
+  var kw = document.getElementById('return-store-input').value.toLowerCase();
+  var stores = DAL.getStores(), dd = document.getElementById('return-store-dropdown'), h = '';
+  stores.forEach(function(s) {
+    var nm = s.name.toLowerCase().indexOf(kw) >= 0, im = s.storeId.toLowerCase().indexOf(kw) >= 0;
+    if (!kw || nm || im) {
+      var tag = s.status !== 'active' ? ' <span style="color:#f5222d;font-size:11px">(已关店)</span>' : '';
+      h += '<div class="store-option" data-id="' + s.storeId + '" data-name="' + s.name + '" data-active="' + (s.status === 'active') + '" onclick="selectRetStore(this)">' + s.name + ' <span class="sid">' + s.storeId + '</span>' + tag + '</div>';
+    }
+  });
+  dd.innerHTML = h || '<div style="padding:8px 12px;color:#999;font-size:13px">未找到匹配门店</div>';
+  dd.style.display = 'block';
+}
+
+function selectRetStore(el) {
+  var id = el.getAttribute('data-id'), name = el.getAttribute('data-name'), active = el.getAttribute('data-active') === 'true';
+  if (!active) { alert('该门店（' + name + '）已关店，无法选择'); return; }
+  document.getElementById('return-store-input').value = name + ' (' + id + ')';
+  document.getElementById('return-store-id').value = id;
+  document.getElementById('return-store-dropdown').style.display = 'none';
+  S.retStoreId = id; S.retStoreName = name;
+  var sel = document.getElementById('return-store-selected');
+  sel.innerHTML = '<span class="store-selected-tag"><i class="fa-solid fa-check"></i> ' + name + ' (' + id + ')</span>';
+  sel.style.display = 'block';
+}
+
+// FIFO allocation + submit
+function submitReturn() {
+  var sels = [], has = false;
+  document.querySelectorAll('.ret-cb').forEach(function(cb) {
+    if (cb.checked) {
+      var idx = parseInt(cb.getAttribute('data-idx'));
+      var qi = document.querySelector('.ret-qty[data-idx="' + idx + '"]');
+      if (qi) {
+        var q = parseInt(qi.value) || 0, it = S.retItems[idx];
+        if (it && q > it.totalQty) q = it.totalQty;
+        if (q > 0) { sels.push({ sku: it.sku, size: it.size, qty: q, refs: it.refs }); has = true; }
+      }
+    }
+  });
+  if (!has) { alert('请至少选择一件商品并填写归还数量'); return; }
+  var method = S.retMethod, stId = S.retStoreId, stName = S.retStoreName;
+  if (method === 'in_person' && !stId) { alert('自提归还必须选择归还门店'); return; }
+
+  var batchNo = genBatchNo(), allocs = [], allTasks = DAL.loadTasks();
+  sels.forEach(function(sel) {
+    var rem = sel.qty;
+    var sorted = sel.refs.slice().sort(function(a, b) { return (a.borrowDate || '').localeCompare(b.borrowDate || ''); });
+    sorted.forEach(function(ref) {
+      if (rem <= 0) return;
+      var aq = Math.min(rem, ref.available); if (aq <= 0) return;
+      var task = allTasks[ref.taskId]; if (!task) return;
+      allocs.push({ taskId: ref.taskId, sku: sel.sku, size: sel.size, qty: aq, type: task.type, storeName: task.pickupStoreName || '' });
+      rem -= aq; ref.available -= aq;
+      task.items.forEach(function(it) { if (it.sku === sel.sku && it.size === sel.size) it.returned += aq; });
+      task.returnBatchNo = batchNo;
+      task.returnMethod = method === 'express' ? 'express' : 'in_person';
+      task.returnStatus = method === 'express' ? 'return_pending' : 'store_pending';
+      task.returnedQty = (task.returnedQty || 0) + aq;
+      task.returnStoreId = stId || ''; task.returnStoreName = stName || '';
+      var rr = window.gmsApi.createReturnTransfer(task, method, stId);
+      task.gmsReturnTransferNo = rr.transferNo;
+    });
+  });
+  DAL.saveTasks(allTasks);
+  S.batchNo = batchNo; S.allocs = allocs; S.allocMethod = method;
+  renderRetResult(batchNo, allocs, method, stName);
+  S.stack.push('page-return-result');
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page-return-result').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function renderRetResult(batchNo, allocs, method, stName) {
+  document.getElementById('result-batch-no').textContent = batchNo;
+  var h = '';
+  allocs.forEach(function(a) {
+    var mt = method === 'in_person' ? '自提归还' : '快递归还';
+    var sl = (method === 'in_person' && stName) ? '<div style="font-size:11px;color:#722ed1">归还至：' + stName + '</div>' : '';
+    h += '<div class="batch-task-item"><div style="font-weight:500">' + a.taskId + '</div><div>' + a.sku + ' ' + a.size + ' x ' + a.qty + '件 · ' + mt + '</div>' + sl + '</div>';
+  });
+  document.getElementById('result-task-list').innerHTML = h;
+  var ae = document.getElementById('result-actions');
+  if (method === 'express') {
+    ae.innerHTML = '<button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:bold" onclick="goToLogistics()"><i class="fa-solid fa-box"></i> 填写物流单号</button>' +
+      '<button class="btn btn-link" style="width:100%;margin-top:8px" onclick="navigateTo(\'page-main\')">返回任务列表</button>';
+  } else {
+    ae.innerHTML = '<button class="btn btn-success" style="width:100%;padding:12px;font-size:15px;font-weight:bold" onclick="navigateTo(\'page-main\')"><i class="fa-solid fa-clipboard-list"></i> 查看任务列表</button>' +
+      '<button class="btn btn-link" style="width:100%;margin-top:8px" onclick="navigateTo(\'page-main\')">返回任务列表</button>';
+  }
+}
+
+// ============================================================
+// SECTION 14: BATCH LOGISTICS
+// ============================================================
+function goToLogistics() {
+  document.getElementById('logistics-batch-no').textContent = S.batchNo;
+  var cnt = S.allocs.length, tq = S.allocs.reduce(function(s, a) { return s + a.qty; }, 0);
+  document.getElementById('logistics-batch-desc').textContent = '共关联 ' + cnt + ' 个任务，合计 ' + tq + ' 件商品';
+  document.getElementById('logistics-no').value = '';
+  navigateTo('page-logistics');
+}
+
+function submitLogistics() {
+  var ln = document.getElementById('logistics-no').value.trim();
+  if (!ln) { alert('请输入快递单号'); return; }
+  var co = document.getElementById('logistics-company').value, bn = S.batchNo, full = co + ' ' + ln;
+  var all = DAL.loadTasks();
+  S.allocs.forEach(function(a) {
+    var t = all[a.taskId];
+    if (t) { t.returnLogisticsNo = full; t.returnLogisticsCompany = co; t.returnStatus = 'return_logistics_filled'; }
+  });
+  DAL.saveTasks(all);
+  window.gmsApi.updateLogistics(bn, ln, co);
+  alert('物流信息提交成功！\n批次号：' + bn + '\n快递：' + full + '\n已回填到所有关联任务');
+  navigateTo('page-main');
+}
+
+// ============================================================
+// SECTION 15: RETURN FROM TASK
+// ============================================================
+function returnFromTask(taskId) {
+  var t = DAL.getTask(taskId); if (!t) return;
+  navigateTo('page-return');
+  setTimeout(function() {
+    var sid = t.virtualShopId, shops = DAL.getVirtualShops(), sname = '';
+    shops.forEach(function(s) { if (s.virtualShopId === sid) sname = s.name; });
+    if (sid && sname) selectRetShop(sid, sname);
+    if (t.type === 'pick_up' && t.pickupStoreId) {
+      setTimeout(function() {
+        if (S.retMethod !== 'in_person') { S.retMethod = 'in_person'; refreshRetMethod(); }
+        var st = getStore(t.pickupStoreId);
+        if (st) {
+          document.getElementById('return-store-input').value = st.name + ' (' + st.storeId + ')';
+          document.getElementById('return-store-id').value = st.storeId;
+          S.retStoreId = st.storeId; S.retStoreName = st.name;
+          var sel = document.getElementById('return-store-selected');
+          sel.innerHTML = '<span class="store-selected-tag"><i class="fa-solid fa-check"></i> ' + st.name + ' (默认原门店)</span>';
+          sel.style.display = 'block';
+        }
+      }, 100);
+    }
+  }, 50);
+}
+
+// ============================================================
+// SECTION 16: STORE RECEIVE SIMULATION
+// ============================================================
+function simulateStoreReceive(taskId) {
+  var t = DAL.getTask(taskId); if (!t || t.status !== 'store_pending') return;
+  window.gmsApi.confirmStoreReceive(t.gmsReturnTransferNo);
+  DAL.updateTask(taskId, { status: 'completed', completedTime: nowISO() });
+  alert('门店已确认收货并质检通过，任务已完结');
+  renderMain(); renderDetail(taskId);
+}
+
+// Simulate express return delivery complete (warehouse receives return package)
+function simulateExpressComplete(taskId) {
+  var t = DAL.getTask(taskId); if (!t || t.status !== 'return_logistics_filled') return;
+  window.gmsApi.confirmReceive(t.gmsReturnTransferNo);
+  DAL.updateTask(taskId, { status: 'completed', completedTime: nowISO() });
+  alert('仓库已确认收货并质检通过，任务已完结');
+  renderMain(); renderDetail(taskId);
+}
+
+// Go to logistics page for a single task return
+function goToLogisticsForTask(taskId) {
+  var t = DAL.getTask(taskId); if (!t) return;
+  S.batchNo = t.returnBatchNo || 'RT-' + taskId;
+  S.allocs = [{ taskId: taskId, sku: t.items[0].sku, size: t.items[0].size, qty: t.items[0].qty }];
+  S.allocMethod = 'express';
+  document.getElementById('logistics-batch-no').textContent = S.batchNo;
+  document.getElementById('logistics-batch-desc').textContent = '任务 ' + taskId + ' 的归还物流';
+  document.getElementById('logistics-no').value = '';
+  navigateTo('page-logistics');
+}
+
+// ============================================================
+// SECTION 17: SKU SEARCH
+// ============================================================
+function doSkuSearch() {
+  var sku = document.getElementById('sku-search-input').value.trim();
+  if (!sku) { alert('请输入商品编码'); return; }
+  S.searching = true;
+  document.getElementById('search-clear-btn').style.display = 'block';
+  document.getElementById('main-tab-bar').style.display = 'none';
+  document.getElementById('content-pending').style.display = 'none';
+  document.getElementById('content-borrowing').style.display = 'none';
+  document.getElementById('content-history').style.display = 'none';
+  document.getElementById('search-results-area').style.display = 'block';
+  var results = [], tasks = userTasks(), su = sku.toUpperCase();
+  for (var id in tasks) {
+    var matched = tasks[id].items.filter(function(it) { return it.sku && it.sku.toUpperCase() === su; });
+    if (matched.length > 0) results.push({ taskId: id, task: tasks[id], matched: matched });
+  }
+  results.sort(function(a, b) { return (b.task.applyTime || '').localeCompare(a.task.applyTime || ''); });
+  renderSearchResults(results, sku);
+}
+
+function renderSearchResults(results, sku) {
+  var te = document.getElementById('search-results-title'), c = document.getElementById('search-results-cards');
+  if (!results.length) {
+    te.textContent = '未找到包含 "' + sku + '" 的任务';
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>未找到包含该商品编码的任务</div>';
+    return;
+  }
+  te.textContent = '找到 ' + results.length + ' 个包含 "' + sku + '" 的任务';
+  var h = '';
+  results.forEach(function(r) {
+    var t = r.task, si = statusInfo(t.status, t);
+    var mh = ''; r.matched.forEach(function(it) { mh += '<div><span class="search-result-match">' + it.sku + '</span> ' + it.size + ' x' + it.qty + '</div>'; });
+    var oh = ''; var others = t.items.filter(function(it) { return r.matched.indexOf(it) === -1; });
+    if (others.length) { oh = '<div style="color:#999;font-size:12px;margin-top:4px">其他：'; others.forEach(function(it) { oh += it.sku + ' ' + it.size + 'x' + it.qty + ' '; }); oh += '</div>'; }
+    var ti = '';
+    if (t.borrowDate) ti += '<div>借出日：' + t.borrowDate + '</div>';
+    if (t.status === 'borrowing' && t.dueDate) {
+      if (isOverdue(t)) ti += '<div>预计归还：' + t.dueDate + ' <span class="red-text">超期' + overdueDays(t) + '天</span></div>';
+      else ti += '<div>预计归还：' + t.dueDate + ' 剩余' + remainDays(t) + '天</div>';
+    }
+    h += '<div class="card search-result-card" onclick="viewDetail(\'' + r.taskId + '\')"><div class="card-title"><span class="status-tag ' + si.c + '">' + si.t + si.i + '</span><span style="font-size:12px;color:#999">' + r.taskId + '</span></div><div class="card-content"><div style="font-weight:bold;margin-bottom:4px;color:#1677FF">匹配商品：</div>' + mh + oh + ti + '</div></div>';
+  });
+  c.innerHTML = h;
+}
+
+function clearSearch() {
+  S.searching = false;
+  document.getElementById('sku-search-input').value = '';
+  document.getElementById('search-clear-btn').style.display = 'none';
+  document.getElementById('search-results-area').style.display = 'none';
+  document.getElementById('main-tab-bar').style.display = 'flex';
+  document.getElementById('content-pending').style.display = '';
+  document.getElementById('content-borrowing').style.display = '';
+  document.getElementById('content-history').style.display = '';
+  switchMainTab(S.tab);
+}
+
+// ============================================================
+// SECTION 18: IMPORT MODAL
+// ============================================================
+function showImportModal() {
+  document.getElementById('import-paste-text').value = '';
+  document.getElementById('import-error-area').style.display = 'none';
+  switchImportTab('text'); openModal('import-modal');
+}
+function switchImportTab(tab) {
+  document.getElementById('import-tab-text').classList.toggle('active', tab === 'text');
+  document.getElementById('import-tab-file').classList.toggle('active', tab === 'file');
+  document.getElementById('import-text-area').style.display = tab === 'text' ? '' : 'none';
+  document.getElementById('import-file-area').style.display = tab === 'file' ? '' : 'none';
+}
+function simulateFileUpload() {
+  document.getElementById('import-paste-text').value = 'A001 38 1\nA002 39 2\nB001 37 2';
+  switchImportTab('text'); alert('已模拟上传Excel文件');
+}
+function executeImport() {
+  var text = document.getElementById('import-paste-text').value.trim();
+  if (!text) { alert('请上传Excel或粘贴文本数据'); return; }
+  var lines = text.split('\n').filter(function(l) { return l.trim(); });
+  var imports = [], errors = [];
+  lines.forEach(function(line, i) {
+    var p = line.trim().split(/\s+/);
+    if (p.length < 3) { errors.push('第' + (i+1) + '行格式错误：' + line); return; }
+    var sku = p[0], size = p[1], qty = parseInt(p[2]);
+    if (!sku || !size || !qty || qty <= 0) { errors.push('第' + (i+1) + '行数据无效：' + line); return; }
+    imports.push({ sku: sku, size: size, qty: qty });
+  });
+  var agg = S.retItems, matched = [], unmatched = [];
+  imports.forEach(function(imp) {
+    var found = agg.find(function(a) { return a.sku.toUpperCase() === imp.sku.toUpperCase() && a.size === imp.size; });
+    if (found) matched.push({ item: found, qty: imp.qty });
+    else unmatched.push(imp.sku + ' ' + imp.size);
+  });
+  var ea = document.getElementById('import-error-area');
+  if (unmatched.length || errors.length) {
+    var eh = ''; errors.forEach(function(e) { eh += '<div>' + e + '</div>'; });
+    unmatched.forEach(function(s) { eh += '<div>匹配失败：' + s + '</div>'; });
+    ea.innerHTML = eh; ea.style.display = 'block';
+  } else ea.style.display = 'none';
+  matched.forEach(function(m) {
+    var idx = agg.indexOf(m.item);
+    var cb = document.querySelector('.ret-cb[data-idx="' + idx + '"]');
+    var qi = document.querySelector('.ret-qty[data-idx="' + idx + '"]');
+    if (cb && qi) { cb.checked = true; qi.value = Math.min(m.qty, m.item.totalQty); }
+  });
+  updateRetSummary();
+  if (matched.length) {
+    setTimeout(function() {
+      closeModal('import-modal');
+      alert('导入成功！已匹配 ' + matched.length + ' 种' + (unmatched.length ? '，' + unmatched.length + ' 种失败' : ''));
+    }, 300);
+  }
+}
+
+// ============================================================
+// SECTION 19: MODAL HELPERS
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.search-select-wrapper')) document.querySelectorAll('.shop-dropdown').forEach(function(d) { d.style.display = 'none'; });
+  if (!e.target.closest('.store-search-wrapper')) document.querySelectorAll('.store-dropdown').forEach(function(d) { d.style.display = 'none'; });
+});
+
+// ============================================================
+// SECTION 20: RESET DATA
+// ============================================================
+function resetAllData() {
+  if (!confirm('确定要重置所有数据吗？此操作不可恢复。')) return;
+  DAL.resetAll(); location.reload();
+}
+
+// ============================================================
+// SECTION 21: INIT
+// ============================================================
+window.onload = function() {
+  DAL.initDefaults();
+  initUserSelector();
+  renderMain();
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>直播借样助手</title>
+    <style>
+        :root {
+            --bg: #f4efe6;
+            --panel: rgba(255, 251, 245, 0.92);
+            --panel-strong: #fffaf2;
+            --border: rgba(118, 88, 53, 0.15);
+            --text: #1e293b;
+            --muted: #64748b;
+            --accent: #b45309;
+            --accent-strong: #92400e;
+            --accent-soft: rgba(180, 83, 9, 0.1);
+            --danger: #c2410c;
+            --success: #15803d;
+            --shadow: 0 18px 40px rgba(70, 42, 14, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(180, 83, 9, 0.18), transparent 25%),
+                radial-gradient(circle at right top, rgba(14, 165, 233, 0.12), transparent 24%),
+                linear-gradient(180deg, #f0e7d9 0%, #f8f4ee 52%, #f6f1e9 100%);
+            min-height: 100vh;
+        }
+
+        .shell {
+            width: min(430px, 100%);
+            margin: 0 auto;
+            min-height: 100vh;
+            padding: 16px 14px 24px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero {
+            padding: 20px 18px;
+            margin-bottom: 14px;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .hero h1 {
+            margin: 6px 0 4px;
+            font-size: 24px;
+            line-height: 1.15;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 13px;
+        }
+
+        .pill,
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: rgba(30, 41, 59, 0.06);
+            color: var(--muted);
+        }
+
+        .status-chip.ok {
+            background: rgba(21, 128, 61, 0.1);
+            color: var(--success);
+        }
+
+        .status-chip.warn {
+            background: rgba(194, 65, 12, 0.12);
+            color: var(--danger);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .metric {
+            padding: 12px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .metric .label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .metric .value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .toolbar button,
+        .actions button,
+        .form-actions button,
+        .task-card button,
+        .footer-actions button {
+            border: 0;
+            border-radius: 14px;
+            padding: 11px 14px;
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+        }
+
+        .toolbar button,
+        .actions button,
+        .form-actions button.primary,
+        .task-card button.primary,
+        .footer-actions button.primary {
+            background: linear-gradient(135deg, #c26b16 0%, #9a4d08 100%);
+            color: white;
+            box-shadow: 0 10px 20px rgba(154, 77, 8, 0.18);
+        }
+
+        .toolbar button.secondary,
+        .actions button.secondary,
+        .form-actions button.secondary,
+        .task-card button.secondary,
+        .footer-actions button.secondary {
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--text);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .toolbar button,
+        .footer-actions button {
+            flex: 1;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 14px;
+        }
+
+        .tab {
+            border: 0;
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--accent-strong);
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-card,
+        .sheet,
+        .empty,
+        .notice {
+            padding: 16px;
+        }
+
+        .task-card h3,
+        .sheet h2 {
+            margin: 0;
+        }
+
+        .task-card-head,
+        .sheet-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .task-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .task-card-subtitle,
+        .sheet-subtitle,
+        .tiny {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .kv {
+            display: grid;
+            grid-template-columns: 76px 1fr;
+            gap: 8px 12px;
+            font-size: 13px;
+            line-height: 1.55;
+            margin-bottom: 12px;
+        }
+
+        .kv .key {
+            color: var(--muted);
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .tag.pending {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+        }
+
+        .tag.borrowing {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0369a1;
+        }
+
+        .tag.returning {
+            background: rgba(245, 158, 11, 0.14);
+            color: #b45309;
+        }
+
+        .tag.done {
+            background: rgba(21, 128, 61, 0.12);
+            color: var(--success);
+        }
+
+        .task-actions,
+        .actions,
+        .form-actions,
+        .footer-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .task-actions button {
+            flex: 1 1 120px;
+        }
+
+        .sheet {
+            margin-bottom: 12px;
+        }
+
+        .panel-strong {
+            background: var(--panel-strong);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
+        }
+
+        .sheet-body {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .list,
+        .allocation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-item,
+        .allocation-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 16px;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            padding: 12px 13px;
+            font: inherit;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text);
+        }
+
+        textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .inline-form .field {
+            flex: 1 1 130px;
+        }
+
+        .compact-input {
+            width: 88px;
+        }
+
+        .empty,
+        .notice {
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .notice {
+            background: rgba(255, 255, 255, 0.66);
+            border: 1px dashed rgba(148, 163, 184, 0.25);
+            border-radius: 20px;
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .footer-space {
+            height: 6px;
+        }
+
+        @media (max-width: 380px) {
+            .meta-grid,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .kv {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+        }
+    </style>
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.1.1/dingtalk.open.js"></script>
+</head>
+<body>
+<div class="shell">
+    <section class="panel hero">
+        <div class="hero-top">
+            <div>
+                <div id="envStatus" class="status-chip">正在识别容器环境</div>
+                <h1>直播借样助手</h1>
+                <p>一期 H5 页面。钉钉只负责打开页面和免登，业务流直接走后端真实接口。</p>
+            </div>
+            <div class="pill" id="userBadge">未识别用户</div>
+        </div>
+        <div class="meta-grid">
+            <div class="metric">
+                <div class="label">当前模式</div>
+                <div class="value" id="modeMetric">Browser</div>
+            </div>
+            <div class="metric">
+                <div class="label">任务总数</div>
+                <div class="value" id="taskCountMetric">0</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="toolbar">
+        <button type="button" id="refreshButton">刷新任务</button>
+        <button type="button" id="newBorrowButton" class="secondary">发起借样</button>
+    </div>
+
+    <section class="panel tabs" id="tabsPanel">
+        <button type="button" class="tab active" data-tab="pending">待处理</button>
+        <button type="button" class="tab" data-tab="borrowing">借样中</button>
+        <button type="button" class="tab" data-tab="history">历史任务</button>
+    </section>
+
+    <section id="listView" class="view active">
+        <div id="taskList" class="stack"></div>
+    </section>
+
+    <section id="detailView" class="view"></section>
+
+    <section id="borrowView" class="view"></section>
+
+    <section id="returnView" class="view"></section>
+
+    <section id="batchView" class="view"></section>
+
+    <div class="footer-space"></div>
+</div>
+
+<script>
+    const state = {
+        corpId: null,
+        clientId: null,
+        user: null,
+        tasks: [],
+        activeTab: 'pending',
+        currentDetail: null,
+        currentBatch: null,
+        returnRows: [],
+        virtualStores: [],
+        bootMode: 'browser'
+    };
+
+    const views = ['listView', 'detailView', 'borrowView', 'returnView', 'batchView'];
+
+    document.getElementById('refreshButton').addEventListener('click', () => loadTasks(true));
+    document.getElementById('newBorrowButton').addEventListener('click', openBorrowView);
+    document.querySelectorAll('.tab').forEach(button => {
+        button.addEventListener('click', () => {
+            state.activeTab = button.dataset.tab;
+            document.querySelectorAll('.tab').forEach(node => node.classList.toggle('active', node === button));
+            showView('listView');
+            renderTaskList();
+        });
+    });
+
+    window.addEventListener('load', async () => {
+        await bootstrap();
+    });
+
+    async function bootstrap() {
+        updateStatus('正在初始化页面', false);
+        state.corpId = getQueryParam('corpId') || getQueryParam('corpid');
+        await Promise.allSettled([loadVirtualStores(), bootstrapDingTalk()]);
+        await loadTasks(false);
+        updateUserBadge();
+    }
+
+    async function bootstrapDingTalk() {
+        if (!window.dd) {
+            updateStatus('当前在浏览器模式运行', false);
+            return;
+        }
+        try {
+            const appConfig = await api('/api/v1/dingtalk/app-config');
+            state.clientId = appConfig.clientId;
+            if (!state.corpId) {
+                state.corpId = appConfig.corpId;
+            }
+            const jsapi = await api(`/api/v1/dingtalk/jsapi-config?url=${encodeURIComponent(window.location.href.split('#')[0])}`);
+            await configDingTalk(jsapi);
+            const authCode = await dd.runtime.permission.requestAuthCode({corpId: state.corpId});
+            if (authCode.code) {
+                state.user = await api(`/api/v1/dingtalk/auth/exchange?code=${encodeURIComponent(authCode.code)}`, {method: 'POST'});
+                state.bootMode = 'dingtalk';
+                updateStatus('已完成钉钉免登', true);
+                updateUserBadge();
+                return;
+            }
+            updateStatus('钉钉容器已接通，但未拿到免登码', false);
+        } catch (error) {
+            console.error(error);
+            updateStatus(`钉钉初始化未完成：${error.message}`, false);
+        }
+    }
+
+    function configDingTalk(config) {
+        const ts = config.timeStamp ?? config.timestamp;
+        return new Promise((resolve, reject) => {
+            dd.config({
+                agentId: config.agentId,
+                corpId: config.corpId,
+                timeStamp: ts,
+                timestamp: ts,
+                nonceStr: config.nonceStr,
+                signature: config.signature,
+                type: 0,
+                jsApiList: ['runtime.permission.requestAuthCode']
+            });
+            dd.ready(resolve);
+            dd.error(err => reject(new Error(JSON.stringify(err))));
+        });
+    }
+
+    async function loadVirtualStores() {
+        state.virtualStores = await api('/api/v1/returns/virtual-stores');
+    }
+
+    async function loadTasks(showToast) {
+        try {
+            const page = await api('/api/v1/borrow/tasks?pageNo=1&pageSize=200');
+            state.tasks = page.list || [];
+            document.getElementById('taskCountMetric').textContent = String(page.total || state.tasks.length);
+            renderTaskList();
+            if (showToast) {
+                updateStatus(`任务已刷新，共 ${state.tasks.length} 条`, true);
+            }
+        } catch (error) {
+            renderNotice('taskList', `加载任务失败：${error.message}`, true);
+            updateStatus(`加载任务失败：${error.message}`, false);
+        }
+    }
+
+    function renderTaskList() {
+        const container = document.getElementById('taskList');
+        const tasks = filterTasksByTab(state.activeTab);
+        if (!tasks.length) {
+            container.innerHTML = `<div class="panel empty">当前分组暂无任务</div>`;
+            return;
+        }
+
+        container.innerHTML = tasks.map(task => {
+            const tag = statusTone(task.taskStatus, task.returnStatus);
+            const actions = buildCardActions(task);
+            return `
+                <article class="panel task-card">
+                    <div class="task-card-head">
+                        <div>
+                            <div class="task-card-title">${escapeHtml(task.itemSummary || task.taskNo)}</div>
+                            <div class="task-card-subtitle">${escapeHtml(task.taskNo)} · ${escapeHtml(task.virtualStoreName || task.virtualStoreCode)}</div>
+                        </div>
+                        <span class="tag ${tag.tone}">${escapeHtml(tag.text)}</span>
+                    </div>
+                    <div class="kv">
+                        <div class="key">借样单号</div><div>${escapeHtml(task.borrowNo)}</div>
+                        <div class="key">履约方式</div><div>${formatDeliveryType(task.deliveryType)}</div>
+                        <div class="key">来源门店</div><div>${escapeHtml(task.sourceStoreName || '-')}</div>
+                        <div class="key">预计归还</div><div>${escapeHtml(task.expectedReturnAt || '-')}</div>
+                        <div class="key">物流单号</div><div>${escapeHtml(task.logisticsNo || '-')}</div>
+                    </div>
+                    <div class="task-actions">${actions}</div>
+                </article>
+            `;
+        }).join('');
+
+        container.querySelectorAll('[data-action="detail"]').forEach(button => {
+            button.addEventListener('click', () => openDetail(button.dataset.taskNo));
+        });
+        container.querySelectorAll('[data-action="receive"]').forEach(button => {
+            button.addEventListener('click', () => {
+                const value = button.dataset.logisticsNo || window.prompt('请输入物流单号', '');
+                confirmReceive(button.dataset.taskNo, value || '');
+            });
+        });
+        container.querySelectorAll('[data-action="return"]').forEach(button => {
+            button.addEventListener('click', () => openReturnView(button.dataset.taskNo));
+        });
+    }
+
+    function filterTasksByTab(tab) {
+        if (tab === 'pending') {
+            return state.tasks.filter(task => ['WAIT_SHIP', 'WAIT_PICKUP', 'IN_TRANSIT'].includes(task.taskStatus));
+        }
+        if (tab === 'borrowing') {
+            return state.tasks.filter(task => ['BORROWING', 'RETURNING', 'QUALITY_CHECKING'].includes(task.taskStatus));
+        }
+        return state.tasks.filter(task => ['COMPLETED', 'CLOSED'].includes(task.taskStatus));
+    }
+
+    function buildCardActions(task) {
+        const buttons = [
+            `<button type="button" class="secondary" data-action="detail" data-task-no="${escapeHtml(task.taskNo)}">查看详情</button>`
+        ];
+        if (task.taskStatus === 'IN_TRANSIT') {
+            buttons.push(
+                `<button type="button" class="primary" data-action="receive" data-task-no="${escapeHtml(task.taskNo)}" data-logistics-no="${escapeHtml(task.logisticsNo || '')}">确认收货</button>`
+            );
+        }
+        if (['BORROWING', 'RETURNING'].includes(task.taskStatus)) {
+            buttons.push(
+                `<button type="button" class="primary" data-action="return" data-task-no="${escapeHtml(task.taskNo)}">发起归还</button>`
+            );
+        }
+        return buttons.join('');
+    }
+
+    async function openDetail(taskNo) {
+        try {
+            const detail = await api(`/api/v1/borrow/tasks/${encodeURIComponent(taskNo)}`);
+            state.currentDetail = detail;
+            renderDetail(detail);
+            showView('detailView');
+        } catch (error) {
+            updateStatus(`加载详情失败：${error.message}`, false);
+        }
+    }
+
+    function renderDetail(detail) {
+        const container = document.getElementById('detailView');
+        const tag = statusTone(detail.taskStatus, detail.returnStatus);
+        const logisticsForm = detail.actions.includes('CONFIRM_RECEIVE')
+            ? `
+                <div class="sheet">
+                    <div class="sheet-head">
+                        <div>
+                            <h2>收货确认</h2>
+                            <div class="sheet-subtitle">运输中任务可直接在这里确认收货。</div>
+                        </div>
+                    </div>
+                    <div class="sheet-body">
+                        <div class="inline-form">
+                            <div class="field">
+                                <label for="receiveLogisticsInput">物流单号</label>
+                                <input id="receiveLogisticsInput" value="${escapeHtml(detail.logisticsNo || '')}" placeholder="请输入物流单号">
+                            </div>
+                            <button type="button" class="primary" id="confirmReceiveDetailButton">确认收货</button>
+                        </div>
+                    </div>
+                </div>`
+            : '';
+
+        const pickupForm = detail.actions.includes('CONFIRM_PICKUP')
+            ? `
+                <div class="sheet">
+                    <div class="sheet-head">
+                        <div>
+                            <h2>自提确认</h2>
+                            <div class="sheet-subtitle">按明细录入本次自提数量。</div>
+                        </div>
+                    </div>
+                    <div class="list">
+                        ${detail.items.map(item => `
+                            <div class="list-item">
+                                <div class="item-title">${escapeHtml(item.productName)} / ${escapeHtml(item.sizeCode)}</div>
+                                <div class="tiny">可提数量 ${Math.max(item.approvedQty - item.pickedQty, 0)} 件</div>
+                                <div class="inline-form" style="margin-top:10px;">
+                                    <div class="field compact-input">
+                                        <label>确认数量</label>
+                                        <input type="number" min="0" max="${Math.max(item.approvedQty - item.pickedQty, 0)}" value="${Math.max(item.approvedQty - item.pickedQty, 0)}" data-pickup-qty="${item.taskItemId}">
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div class="form-actions">
+                            <button type="button" class="primary" id="confirmPickupButton">提交自提确认</button>
+                        </div>
+                    </div>
+                </div>`
+            : '';
+
+        const returnButton = detail.actions.includes('CREATE_RETURN_BATCH')
+            ? `<button type="button" class="primary" id="openReturnFromDetailButton">发起归还</button>`
+            : '';
+
+        const batchButton = detail.currentReturnBatchNo
+            ? `<button type="button" class="secondary" id="openBatchDetailButton">查看归还批次 ${escapeHtml(detail.currentReturnBatchNo)}</button>`
+            : '';
+
+        container.innerHTML = `
+            <div class="sheet panel">
+                <div class="sheet-head">
+                    <div>
+                        <h2>任务详情</h2>
+                        <div class="sheet-subtitle">${escapeHtml(detail.taskNo)} · ${escapeHtml(detail.borrowNo)}</div>
+                    </div>
+                    <span class="tag ${tag.tone}">${escapeHtml(tag.text)}</span>
+                </div>
+                <div class="sheet-body">
+                    <div class="kv">
+                        <div class="key">虚店</div><div>${escapeHtml(detail.virtualStoreName || detail.virtualStoreCode)}</div>
+                        <div class="key">履约方式</div><div>${formatDeliveryType(detail.deliveryType)}</div>
+                        <div class="key">来源门店</div><div>${escapeHtml(detail.sourceStoreName || '-')}</div>
+                        <div class="key">预计归还</div><div>${escapeHtml(detail.expectedReturnAt || '-')}</div>
+                        <div class="key">物流单号</div><div>${escapeHtml(detail.logisticsNo || '-')}</div>
+                        <div class="key">收件人</div><div>${escapeHtml(joinUserInfo(detail.receiverName, detail.receiverMobile))}</div>
+                        <div class="key">收货地址</div><div>${escapeHtml(detail.receiverFullAddress || '-')}</div>
+                        <div class="key">自提门店</div><div>${escapeHtml(detail.pickupStoreName || detail.pickupStoreCode || '-')}</div>
+                        <div class="key">备注</div><div>${escapeHtml(detail.remark || '-')}</div>
+                    </div>
+                    <div class="list">
+                        ${detail.items.map(item => `
+                            <div class="list-item">
+                                <div class="item-title">${escapeHtml(item.productName)}</div>
+                                <div class="tiny">SKU ${escapeHtml(item.skuCode)} / 尺码 ${escapeHtml(item.sizeCode)}</div>
+                                <div class="kv" style="margin-top:10px;margin-bottom:0;">
+                                    <div class="key">审批数</div><div>${item.approvedQty}</div>
+                                    <div class="key">已发货</div><div>${item.shippedQty}</div>
+                                    <div class="key">已收货</div><div>${item.receivedQty}</div>
+                                    <div class="key">已归还申请</div><div>${item.returnedApplyQty}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="secondary" id="backToListButton">返回列表</button>
+                        ${returnButton}
+                        ${batchButton}
+                    </div>
+                </div>
+            </div>
+            ${logisticsForm}
+            ${pickupForm}
+        `;
+
+        document.getElementById('backToListButton').addEventListener('click', () => showView('listView'));
+        if (detail.actions.includes('CONFIRM_RECEIVE')) {
+            document.getElementById('confirmReceiveDetailButton').addEventListener('click', async () => {
+                const logisticsNo = document.getElementById('receiveLogisticsInput').value.trim();
+                await confirmReceive(detail.taskNo, logisticsNo);
+            });
+        }
+        if (detail.actions.includes('CONFIRM_PICKUP')) {
+            document.getElementById('confirmPickupButton').addEventListener('click', async () => {
+                const payloadItems = Array.from(container.querySelectorAll('[data-pickup-qty]'))
+                    .map(input => ({
+                        taskItemId: Number(input.dataset.pickupQty),
+                        confirmQty: Number(input.value || 0)
+                    }))
+                    .filter(item => item.confirmQty > 0);
+                if (!payloadItems.length) {
+                    updateStatus('请至少填写一条自提数量', false);
+                    return;
+                }
+                try {
+                    await api(`/api/v1/borrow/tasks/${encodeURIComponent(detail.taskNo)}/pickup-confirm`, {
+                        method: 'POST',
+                        body: JSON.stringify({items: payloadItems, remark: 'H5 自提确认'})
+                    });
+                    updateStatus('自提确认成功', true);
+                    await Promise.all([loadTasks(false), openDetail(detail.taskNo)]);
+                } catch (error) {
+                    updateStatus(`自提确认失败：${error.message}`, false);
+                }
+            });
+        }
+        if (detail.actions.includes('CREATE_RETURN_BATCH')) {
+            document.getElementById('openReturnFromDetailButton').addEventListener('click', () => openReturnView(detail.taskNo));
+        }
+        if (detail.currentReturnBatchNo) {
+            document.getElementById('openBatchDetailButton').addEventListener('click', () => openBatchView(detail.currentReturnBatchNo));
+        }
+    }
+
+    async function confirmReceive(taskNo, logisticsNo) {
+        if (!logisticsNo || !logisticsNo.trim()) {
+            updateStatus('请先填写物流单号', false);
+            return;
+        }
+        try {
+            await api(`/api/v1/borrow/tasks/${encodeURIComponent(taskNo)}/receive-confirm`, {
+                method: 'POST',
+                body: JSON.stringify({logisticsNo: logisticsNo.trim(), remark: 'H5 收货确认'})
+            });
+            updateStatus('收货确认成功', true);
+            await loadTasks(false);
+            if (state.currentDetail && state.currentDetail.taskNo === taskNo) {
+                await openDetail(taskNo);
+            }
+        } catch (error) {
+            updateStatus(`收货确认失败：${error.message}`, false);
+        }
+    }
+
+    function openBorrowView() {
+        showView('borrowView');
+        const storeOptions = state.virtualStores.map(store =>
+            `<option value="${escapeHtml(store.virtualStoreCode)}">${escapeHtml(store.virtualStoreName)}</option>`
+        ).join('');
+        document.getElementById('borrowView').innerHTML = `
+            <div class="sheet panel">
+                <div class="sheet-head">
+                    <div>
+                        <h2>发起借样</h2>
+                        <div class="sheet-subtitle">一期先保留最小表单：虚店、履约方式、收货信息、样品明细。</div>
+                    </div>
+                </div>
+                <div class="sheet-body">
+                    <div class="grid-2">
+                        <div>
+                            <label for="borrowVirtualStore">借样虚店</label>
+                            <select id="borrowVirtualStore">${storeOptions}</select>
+                        </div>
+                        <div>
+                            <label for="borrowDeliveryType">履约方式</label>
+                            <select id="borrowDeliveryType">
+                                <option value="EXPRESS">快递</option>
+                                <option value="PICKUP">自提</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="borrowPickupStore">自提门店编码</label>
+                        <input id="borrowPickupStore" placeholder="自提模式填写，如 PUDONG-01">
+                    </div>
+                    <div class="grid-2">
+                        <div>
+                            <label for="receiverName">收件人</label>
+                            <input id="receiverName" placeholder="张三">
+                        </div>
+                        <div>
+                            <label for="receiverMobile">手机号</label>
+                            <input id="receiverMobile" placeholder="13800001111">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div>
+                            <label for="receiverProvince">省</label>
+                            <input id="receiverProvince" placeholder="上海市">
+                        </div>
+                        <div>
+                            <label for="receiverCity">市</label>
+                            <input id="receiverCity" placeholder="上海市">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div>
+                            <label for="receiverDistrict">区</label>
+                            <input id="receiverDistrict" placeholder="徐汇区">
+                        </div>
+                        <div>
+                            <label for="borrowRemark">备注</label>
+                            <input id="borrowRemark" placeholder="可选">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="receiverAddress">详细地址</label>
+                        <input id="receiverAddress" placeholder="漕溪北路 100 号 1602">
+                    </div>
+                    <div class="sheet panel-strong">
+                        <div class="sheet-head">
+                            <div>
+                                <h2>样品明细</h2>
+                                <div class="sheet-subtitle">先支持手工录两条，够一期联调。</div>
+                            </div>
+                        </div>
+                        <div class="list" id="borrowItemsList"></div>
+                        <div class="form-actions">
+                            <button type="button" class="secondary" id="addBorrowItemButton">新增一行</button>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary" id="cancelBorrowButton">返回</button>
+                        <button type="button" class="primary" id="submitBorrowButton">提交借样申请</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const list = document.getElementById('borrowItemsList');
+        const addItem = (item = {skuCode: '', sizeCode: '', applyQty: 1}) => {
+            const row = document.createElement('div');
+            row.className = 'list-item';
+            row.innerHTML = `
+                <div class="grid-2">
+                    <div>
+                        <label>SKU</label>
+                        <input data-borrow-field="skuCode" value="${escapeHtml(item.skuCode)}" placeholder="SKU001">
+                    </div>
+                    <div>
+                        <label>尺码</label>
+                        <input data-borrow-field="sizeCode" value="${escapeHtml(item.sizeCode)}" placeholder="M">
+                    </div>
+                </div>
+                <div class="inline-form" style="margin-top:10px;">
+                    <div class="field compact-input">
+                        <label>数量</label>
+                        <input type="number" min="1" data-borrow-field="applyQty" value="${Number(item.applyQty || 1)}">
+                    </div>
+                    <button type="button" class="secondary" data-remove-item>删除</button>
+                </div>
+            `;
+            row.querySelector('[data-remove-item]').addEventListener('click', () => row.remove());
+            list.appendChild(row);
+        };
+
+        addItem({skuCode: 'SKU001', sizeCode: 'M', applyQty: 1});
+        addItem({skuCode: 'SKU002', sizeCode: 'L', applyQty: 1});
+
+        document.getElementById('addBorrowItemButton').addEventListener('click', () => addItem());
+        document.getElementById('cancelBorrowButton').addEventListener('click', () => showView('listView'));
+        document.getElementById('submitBorrowButton').addEventListener('click', submitBorrow);
+    }
+
+    async function submitBorrow() {
+        const deliveryType = document.getElementById('borrowDeliveryType').value;
+        const items = Array.from(document.querySelectorAll('#borrowItemsList .list-item')).map(row => ({
+            skuCode: row.querySelector('[data-borrow-field="skuCode"]').value.trim(),
+            sizeCode: row.querySelector('[data-borrow-field="sizeCode"]').value.trim(),
+            applyQty: Number(row.querySelector('[data-borrow-field="applyQty"]').value || 0)
+        })).filter(item => item.skuCode && item.sizeCode && item.applyQty > 0);
+
+        if (!items.length) {
+            updateStatus('请至少填写一条样品明细', false);
+            return;
+        }
+
+        const payload = {
+            virtualStoreCode: document.getElementById('borrowVirtualStore').value,
+            deliveryType,
+            pickupStoreCode: document.getElementById('borrowPickupStore').value.trim() || null,
+            remark: document.getElementById('borrowRemark').value.trim() || null,
+            receiver: deliveryType === 'EXPRESS' ? {
+                name: document.getElementById('receiverName').value.trim(),
+                mobile: document.getElementById('receiverMobile').value.trim(),
+                province: document.getElementById('receiverProvince').value.trim(),
+                city: document.getElementById('receiverCity').value.trim(),
+                district: document.getElementById('receiverDistrict').value.trim(),
+                address: document.getElementById('receiverAddress').value.trim()
+            } : null,
+            items
+        };
+
+        try {
+            const result = await api('/api/v1/borrow/applications', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            updateStatus(`借样申请已提交：${result.applyNo}`, true);
+            await loadTasks(false);
+            await openDetail(result.taskNos[0]);
+        } catch (error) {
+            updateStatus(`借样申请失败：${error.message}`, false);
+        }
+    }
+
+    async function openReturnView(taskNo) {
+        let detail = state.currentDetail;
+        if (!detail || detail.taskNo !== taskNo) {
+            detail = await api(`/api/v1/borrow/tasks/${encodeURIComponent(taskNo)}`);
+        }
+        showView('returnView');
+        const defaultFilter = detail.deliveryType === 'PICKUP' ? 'PICKUP_ONLY' : 'ALL';
+        document.getElementById('returnView').innerHTML = `
+            <div class="sheet panel">
+                <div class="sheet-head">
+                    <div>
+                        <h2>发起归还</h2>
+                        <div class="sheet-subtitle">${escapeHtml(detail.taskNo)} · 当前接口按虚店聚合可归还样品。</div>
+                    </div>
+                </div>
+                <div class="sheet-body">
+                    <div class="grid-2">
+                        <div>
+                            <label for="returnVirtualStore">虚店</label>
+                            <input id="returnVirtualStore" value="${escapeHtml(detail.virtualStoreCode)}" readonly>
+                        </div>
+                        <div>
+                            <label for="returnFilter">样品范围</label>
+                            <select id="returnFilter">
+                                <option value="ALL"${defaultFilter === 'ALL' ? ' selected' : ''}>全部样品</option>
+                                <option value="PICKUP_ONLY"${defaultFilter === 'PICKUP_ONLY' ? ' selected' : ''}>仅自提样品</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div>
+                            <label for="returnMethod">归还方式</label>
+                            <select id="returnMethod">
+                                <option value="EXPRESS">快递归还</option>
+                                <option value="IN_PERSON">自行归还</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="returnRemark">备注</label>
+                            <input id="returnRemark" placeholder="可选">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="secondary" id="backFromReturnButton">返回</button>
+                        <button type="button" class="secondary" id="loadReturnRowsButton">加载可归还商品</button>
+                        <button type="button" class="primary" id="submitReturnBatchButton">提交归还批次</button>
+                    </div>
+                    <div id="returnRowsContainer" class="stack"></div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('backFromReturnButton').addEventListener('click', () => {
+            renderDetail(detail);
+            showView('detailView');
+        });
+        document.getElementById('loadReturnRowsButton').addEventListener('click', loadReturnRows);
+        document.getElementById('submitReturnBatchButton').addEventListener('click', () => submitReturnBatch(detail.taskNo));
+        await loadReturnRows();
+    }
+
+    async function loadReturnRows() {
+        const container = document.getElementById('returnRowsContainer');
+        try {
+            const virtualStoreCode = document.getElementById('returnVirtualStore').value;
+            const sampleFilterType = document.getElementById('returnFilter').value;
+            const data = await api(`/api/v1/returns/aggregations?virtualStoreCode=${encodeURIComponent(virtualStoreCode)}&sampleFilterType=${encodeURIComponent(sampleFilterType)}`);
+            state.returnRows = data.rows || [];
+            if (!state.returnRows.length) {
+                container.innerHTML = `<div class="panel notice">当前没有可归还商品</div>`;
+                return;
+            }
+            container.innerHTML = state.returnRows.map((row, index) => `
+                <div class="panel list-item">
+                    <div class="item-title">${escapeHtml(row.productName)} / ${escapeHtml(row.sizeCode)}</div>
+                    <div class="tiny">SKU ${escapeHtml(row.skuCode)} · 可归还 ${row.availableReturnQty} 件 · ${row.sampleType === 'PICKUP' ? '自提样品' : '快递样品'}</div>
+                    <div class="tiny">${escapeHtml(row.sourceStoreName || '—')}</div>
+                    <div class="inline-form" style="margin-top:10px;">
+                        <div class="field compact-input">
+                            <label>归还数量</label>
+                            <input type="number" min="0" max="${row.availableReturnQty}" value="0" data-return-row="${index}">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            updateStatus(`已加载 ${state.returnRows.length} 条可归还商品`, true);
+        } catch (error) {
+            container.innerHTML = `<div class="panel notice error">加载聚合失败：${escapeHtml(error.message)}</div>`;
+            updateStatus(`加载可归还商品失败：${error.message}`, false);
+        }
+    }
+
+    async function submitReturnBatch(taskNo) {
+        const items = state.returnRows.map((row, index) => ({
+            skuCode: row.skuCode,
+            sizeCode: row.sizeCode,
+            applyReturnQty: Number(document.querySelector(`[data-return-row="${index}"]`)?.value || 0)
+        })).filter(item => item.applyReturnQty > 0);
+
+        if (!items.length) {
+            updateStatus('请至少填写一条归还数量', false);
+            return;
+        }
+
+        const payload = {
+            virtualStoreCode: document.getElementById('returnVirtualStore').value,
+            sourceType: 'TASK_DETAIL',
+            sampleFilterType: document.getElementById('returnFilter').value,
+            returnMethod: document.getElementById('returnMethod').value,
+            remark: document.getElementById('returnRemark').value.trim() || null,
+            items
+        };
+
+        try {
+            const batch = await api('/api/v1/returns/batches', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            updateStatus(`归还批次已创建：${batch.returnBatchNo}`, true);
+            await loadTasks(false);
+            await openBatchView(batch.returnBatchNo, taskNo);
+        } catch (error) {
+            updateStatus(`创建归还批次失败：${error.message}`, false);
+        }
+    }
+
+    async function openBatchView(returnBatchNo, fallbackTaskNo) {
+        try {
+            const batch = await api(`/api/v1/returns/batches/${encodeURIComponent(returnBatchNo)}`);
+            state.currentBatch = batch;
+            renderBatchView(batch, fallbackTaskNo);
+            showView('batchView');
+        } catch (error) {
+            updateStatus(`加载归还批次失败：${error.message}`, false);
+        }
+    }
+
+    function renderBatchView(batch, fallbackTaskNo) {
+        const needsLogistics = batch.returnMethod === 'EXPRESS' && !batch.logisticsNo;
+        document.getElementById('batchView').innerHTML = `
+            <div class="sheet panel">
+                <div class="sheet-head">
+                    <div>
+                        <h2>归还批次详情</h2>
+                        <div class="sheet-subtitle">${escapeHtml(batch.returnBatchNo)} · ${escapeHtml(batch.virtualStoreName || batch.virtualStoreCode)}</div>
+                    </div>
+                    <span class="tag ${batch.status === 'PENDING' ? 'pending' : 'done'}">${escapeHtml(batch.status)}</span>
+                </div>
+                <div class="sheet-body">
+                    <div class="kv">
+                        <div class="key">归还方式</div><div>${batch.returnMethod === 'EXPRESS' ? '快递归还' : '自行归还'}</div>
+                        <div class="key">物流公司</div><div>${escapeHtml(batch.logisticsCompanyName || '-')}</div>
+                        <div class="key">物流单号</div><div>${escapeHtml(batch.logisticsNo || '-')}</div>
+                    </div>
+                    <div class="list">
+                        ${batch.items.map(item => `
+                            <div class="list-item">
+                                <div class="item-title">${escapeHtml(item.productName)} / ${escapeHtml(item.sizeCode)}</div>
+                                <div class="tiny">本批归还 ${item.applyReturnQty} 件，来源 ${escapeHtml(item.sourceStoreName || '-')}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="allocation-list">
+                        ${batch.allocations.map(item => `
+                            <div class="allocation-item">
+                                <div class="item-title">${escapeHtml(item.taskNo)}</div>
+                                <div class="tiny">${escapeHtml(item.skuCode)} / ${escapeHtml(item.sizeCode)} · 分摊 ${item.allocatedQty} 件</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${needsLogistics ? `
+                        <div class="sheet">
+                            <div class="sheet-head">
+                                <div>
+                                    <h2>填写物流</h2>
+                                    <div class="sheet-subtitle">快递归还创建后，再补录物流单号。</div>
+                                </div>
+                            </div>
+                            <div class="sheet-body">
+                                <div class="grid-2">
+                                    <div>
+                                        <label for="logisticsCompanyCode">公司编码</label>
+                                        <input id="logisticsCompanyCode" value="SF" placeholder="SF">
+                                    </div>
+                                    <div>
+                                        <label for="logisticsCompanyName">公司名称</label>
+                                        <input id="logisticsCompanyName" value="顺丰" placeholder="顺丰">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="logisticsNoInput">物流单号</label>
+                                    <input id="logisticsNoInput" placeholder="SF1234567890">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="primary" id="submitLogisticsButton">提交物流信息</button>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="footer-actions">
+                        <button type="button" class="secondary" id="backFromBatchButton">返回</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('backFromBatchButton').addEventListener('click', async () => {
+            if (fallbackTaskNo) {
+                await openDetail(fallbackTaskNo);
+                return;
+            }
+            showView('listView');
+        });
+
+        if (needsLogistics) {
+            document.getElementById('submitLogisticsButton').addEventListener('click', async () => {
+                try {
+                    await api(`/api/v1/returns/batches/${encodeURIComponent(batch.returnBatchNo)}/logistics`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            companyCode: document.getElementById('logisticsCompanyCode').value.trim(),
+                            companyName: document.getElementById('logisticsCompanyName').value.trim(),
+                            logisticsNo: document.getElementById('logisticsNoInput').value.trim()
+                        })
+                    });
+                    updateStatus('物流信息已提交', true);
+                    await loadTasks(false);
+                    await openBatchView(batch.returnBatchNo, fallbackTaskNo);
+                } catch (error) {
+                    updateStatus(`提交物流失败：${error.message}`, false);
+                }
+            });
+        }
+    }
+
+    function showView(viewId) {
+        views.forEach(id => document.getElementById(id).classList.toggle('active', id === viewId));
+        if (viewId !== 'listView') {
+            document.getElementById('tabsPanel').style.display = 'none';
+        } else {
+            document.getElementById('tabsPanel').style.display = 'grid';
+        }
+    }
+
+    function renderNotice(containerId, message, isError) {
+        document.getElementById(containerId).innerHTML = `<div class="panel notice ${isError ? 'error' : ''}">${escapeHtml(message)}</div>`;
+    }
+
+    function statusTone(taskStatus, returnStatus) {
+        if (['COMPLETED', 'CLOSED'].includes(taskStatus)) {
+            return {tone: 'done', text: '已完成'};
+        }
+        if (taskStatus === 'RETURNING' || returnStatus === 'LOGISTICS_FILLED') {
+            return {tone: 'returning', text: '归还中'};
+        }
+        if (taskStatus === 'BORROWING') {
+            return {tone: 'borrowing', text: '借样中'};
+        }
+        return {tone: 'pending', text: statusText(taskStatus)};
+    }
+
+    function statusText(taskStatus) {
+        const map = {
+            WAIT_SHIP: '待发货',
+            WAIT_PICKUP: '待自提',
+            IN_TRANSIT: '待收货',
+            BORROWING: '借样中',
+            RETURNING: '归还中',
+            COMPLETED: '已完成',
+            CLOSED: '已关闭'
+        };
+        return map[taskStatus] || taskStatus;
+    }
+
+    function formatDeliveryType(code) {
+        return code === 'PICKUP' ? '自提' : '快递';
+    }
+
+    function joinUserInfo(name, mobile) {
+        return [name, mobile].filter(Boolean).join(' / ') || '-';
+    }
+
+    function updateStatus(message, success) {
+        const node = document.getElementById('envStatus');
+        node.textContent = message;
+        node.className = `status-chip ${success ? 'ok' : ''}`;
+        document.getElementById('modeMetric').textContent = state.bootMode === 'dingtalk' ? 'DingTalk' : 'Browser';
+    }
+
+    function updateUserBadge() {
+        const badge = document.getElementById('userBadge');
+        if (!state.user) {
+            badge.textContent = state.bootMode === 'dingtalk' ? '未换取用户' : '浏览器访客';
+            return;
+        }
+        badge.textContent = `${state.user.name || state.user.nick || '当前用户'} / ${state.user.userId || state.user.unionId || '-'}`;
+    }
+
+    async function api(url, options = {}) {
+        const response = await fetch(url, {
+            method: options.method || 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            },
+            body: options.body
+        });
+        const json = await response.json();
+        if (!response.ok || json.code !== '0') {
+            throw new Error(json.message || response.statusText || '请求失败');
+        }
+        return json.data;
+    }
+
+    function getQueryParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+</script>
+</body>
+</html>

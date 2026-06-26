@@ -1,0 +1,417 @@
+openapi: 3.0.3
+info:
+  title: 直播借样 MVP API
+  version: 1.0.0
+  description: 钉钉借样助手一期 MVP 接口草案
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Health
+  - name: DingTalk
+  - name: Borrow
+  - name: Return
+  - name: Admin
+paths:
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: 健康检查
+      operationId: healthCheck
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseHealth'
+  /api/v1/dingtalk/app-config:
+    get:
+      tags: [DingTalk]
+      summary: 查询钉钉应用前端配置
+      operationId: getDingTalkAppConfig
+      responses:
+        '200':
+          description: success
+  /api/v1/dingtalk/jsapi-config:
+    get:
+      tags: [DingTalk]
+      summary: 生成钉钉 H5 JSAPI 配置
+      operationId: getDingTalkJsapiConfig
+      parameters:
+        - in: query
+          name: url
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+  /api/v1/dingtalk/auth/exchange:
+    post:
+      tags: [DingTalk]
+      summary: 用钉钉免登 code 换取用户身份
+      operationId: exchangeDingTalkAuthCode
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+  /api/v1/borrow/applications:
+    post:
+      tags: [Borrow]
+      summary: 发起借样申请
+      operationId: createBorrowApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BorrowApplicationCreateRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBorrowApplicationCreateResponse'
+  /api/v1/borrow/tasks:
+    get:
+      tags: [Borrow]
+      summary: 查询借样任务列表
+      operationId: queryBorrowTasks
+      parameters:
+        - in: query
+          name: pageNo
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+  /api/v1/borrow/tasks/{taskNo}:
+    get:
+      tags: [Borrow]
+      summary: 查询借样任务详情
+      operationId: getBorrowTaskDetail
+      parameters:
+        - in: path
+          name: taskNo
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+  /api/v1/borrow/tasks/{taskNo}/receive-confirm:
+    post:
+      tags: [Borrow]
+      summary: 确认已收货
+      operationId: confirmReceive
+      parameters:
+        - in: path
+          name: taskNo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiveConfirmRequest'
+      responses:
+        '200':
+          description: success
+  /api/v1/borrow/tasks/{taskNo}/pickup-confirm:
+    post:
+      tags: [Borrow]
+      summary: 确认已自提
+      operationId: confirmPickup
+      parameters:
+        - in: path
+          name: taskNo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PickupConfirmRequest'
+      responses:
+        '200':
+          description: success
+  /api/v1/returns/virtual-stores:
+    get:
+      tags: [Return]
+      summary: 查询当前用户可用虚店
+      operationId: queryReturnVirtualStores
+      responses:
+        '200':
+          description: success
+  /api/v1/returns/aggregations:
+    get:
+      tags: [Return]
+      summary: 查询通用归还聚合清单
+      operationId: queryReturnAggregations
+      parameters:
+        - in: query
+          name: virtualStoreCode
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: sampleFilterType
+          required: true
+          schema:
+            type: string
+            enum: [ALL, PICKUP_ONLY]
+      responses:
+        '200':
+          description: success
+  /api/v1/returns/batches:
+    post:
+      tags: [Return]
+      summary: 发起归还批次
+      operationId: createReturnBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnBatchCreateRequest'
+      responses:
+        '200':
+          description: success
+  /api/v1/returns/batches/{returnBatchNo}:
+    get:
+      tags: [Return]
+      summary: 查询归还批次详情
+      operationId: getReturnBatchDetail
+      parameters:
+        - in: path
+          name: returnBatchNo
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: success
+  /api/v1/returns/batches/{returnBatchNo}/logistics:
+    post:
+      tags: [Return]
+      summary: 填写归还物流
+      operationId: fillReturnLogistics
+      parameters:
+        - in: path
+          name: returnBatchNo
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnLogisticsRequest'
+      responses:
+        '200':
+          description: success
+  /api/v1/admin/tasks:
+    get:
+      tags: [Admin]
+      summary: 查询后台任务列表
+      operationId: queryAdminTasks
+      responses:
+        '200':
+          description: success
+components:
+  schemas:
+    ApiResponseHealth:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+        data:
+          type: object
+          properties:
+            service:
+              type: string
+            status:
+              type: string
+            now:
+              type: string
+    ApiResponseBorrowApplicationCreateResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+        data:
+          $ref: '#/components/schemas/BorrowApplicationCreateResponse'
+    BorrowApplicationCreateRequest:
+      type: object
+      required:
+        - virtualStoreCode
+        - deliveryType
+        - items
+      properties:
+        virtualStoreCode:
+          type: string
+        deliveryType:
+          type: string
+          enum: [EXPRESS, PICKUP]
+        pickupStoreCode:
+          type: string
+          nullable: true
+        remark:
+          type: string
+        receiver:
+          $ref: '#/components/schemas/Receiver'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BorrowItem'
+    BorrowApplicationCreateResponse:
+      type: object
+      properties:
+        applyNo:
+          type: string
+        auditStatus:
+          type: string
+        borrowNo:
+          type: string
+        taskNos:
+          type: array
+          items:
+            type: string
+    Receiver:
+      type: object
+      properties:
+        name:
+          type: string
+        mobile:
+          type: string
+        province:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        address:
+          type: string
+    BorrowItem:
+      type: object
+      required:
+        - skuCode
+        - sizeCode
+        - applyQty
+      properties:
+        skuCode:
+          type: string
+        sizeCode:
+          type: string
+        applyQty:
+          type: integer
+    ReceiveConfirmRequest:
+      type: object
+      required:
+        - logisticsNo
+      properties:
+        logisticsNo:
+          type: string
+        remark:
+          type: string
+    PickupConfirmRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PickupConfirmItem'
+        remark:
+          type: string
+    PickupConfirmItem:
+      type: object
+      required:
+        - taskItemId
+        - confirmQty
+      properties:
+        taskItemId:
+          type: integer
+          format: int64
+        confirmQty:
+          type: integer
+    ReturnBatchCreateRequest:
+      type: object
+      required:
+        - virtualStoreCode
+        - sourceType
+        - sampleFilterType
+        - returnMethod
+        - items
+      properties:
+        virtualStoreCode:
+          type: string
+        sourceType:
+          type: string
+          enum: [TASK_DETAIL, GENERAL_RETURN]
+        sampleFilterType:
+          type: string
+          enum: [ALL, PICKUP_ONLY]
+        returnMethod:
+          type: string
+          enum: [EXPRESS, IN_PERSON]
+        remark:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnBatchItem'
+    ReturnBatchItem:
+      type: object
+      required:
+        - skuCode
+        - sizeCode
+        - applyReturnQty
+      properties:
+        skuCode:
+          type: string
+        sizeCode:
+          type: string
+        applyReturnQty:
+          type: integer
+    ReturnLogisticsRequest:
+      type: object
+      required:
+        - companyCode
+        - companyName
+        - logisticsNo
+      properties:
+        companyCode:
+          type: string
+        companyName:
+          type: string
+        logisticsNo:
+          type: string

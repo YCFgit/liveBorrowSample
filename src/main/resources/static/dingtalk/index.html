@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直播借样 - 钉钉 H5 联调</title>
+    <style>
+        :root {
+            --bg: #f3efe6;
+            --panel: #fffdf8;
+            --border: #d4c8b4;
+            --text: #1f2a37;
+            --muted: #6b7280;
+            --accent: #b85c38;
+            --accent-dark: #8f452a;
+            --success: #1f7a4d;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top right, rgba(184, 92, 56, 0.16), transparent 28%),
+                linear-gradient(180deg, #efe6d7 0%, #f8f5ef 56%, #f4efe5 100%);
+            min-height: 100vh;
+        }
+
+        main {
+            width: min(980px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        .hero,
+        .panel {
+            background: color-mix(in srgb, var(--panel) 96%, white 4%);
+            border: 1px solid rgba(212, 200, 180, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(66, 50, 34, 0.08);
+        }
+
+        .hero {
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        h1,
+        h2 {
+            margin: 0 0 12px;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(184, 92, 56, 0.08);
+            color: var(--accent-dark);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .status.ok {
+            background: rgba(31, 122, 77, 0.08);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(180, 35, 24, 0.08);
+            color: var(--danger);
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            background: var(--accent);
+            color: white;
+            padding: 10px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 140ms ease, background 140ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            background: var(--accent-dark);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: white;
+            font: inherit;
+            color: var(--text);
+        }
+
+        textarea {
+            min-height: 180px;
+            resize: vertical;
+        }
+
+        pre {
+            margin: 0;
+            padding: 14px;
+            border-radius: 14px;
+            background: #1f2937;
+            color: #e5e7eb;
+            overflow: auto;
+            font-size: 13px;
+            min-height: 180px;
+        }
+
+        .hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .small {
+            font-size: 12px;
+        }
+
+        .mono {
+            font-family: "SFMono-Regular", "JetBrains Mono", Consolas, monospace;
+        }
+
+        @media (max-width: 720px) {
+            main {
+                width: calc(100% - 20px);
+                padding-top: 20px;
+            }
+
+            .hero,
+            .panel {
+                border-radius: 16px;
+                padding: 18px;
+            }
+        }
+    </style>
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.1.1/dingtalk.open.js"></script>
+</head>
+<body>
+<main>
+    <section class="hero">
+        <div id="containerStatus" class="status">检测运行环境中</div>
+        <h1>直播借样钉钉 H5 联调页</h1>
+        <p>用于验证后端配置、JSAPI 签名、H5 免登码获取，以及免登码换用户信息。正式工作台首页建议改成一期业务页，当前页面仅保留联调用途。</p>
+        <div class="actions">
+            <button type="button" id="loadConfigButton">读取后端配置</button>
+            <button type="button" id="loadJsapiButton">生成 JSAPI 签名</button>
+            <button type="button" id="configButton">执行 dd.config</button>
+            <button type="button" id="authCodeButton">获取免登码</button>
+            <button type="button" id="exchangeButton">后端换取用户</button>
+            <button type="button" id="assistantPageButton">打开一期业务页</button>
+        </div>
+    </section>
+
+    <section class="grid">
+        <div class="panel">
+            <h2>当前配置</h2>
+            <div class="field">
+                <label for="corpIdInput">CorpId</label>
+                <input id="corpIdInput" class="mono" placeholder="从 URL corpid 或后端配置读取">
+            </div>
+            <div class="field">
+                <label for="clientIdInput">Client ID</label>
+                <input id="clientIdInput" class="mono" placeholder="从后端配置读取">
+            </div>
+            <div class="field">
+                <label for="agentIdInput">AgentId</label>
+                <input id="agentIdInput" class="mono" placeholder="从后端配置读取">
+            </div>
+            <div class="field">
+                <label for="authCodeInput">Auth Code</label>
+                <input id="authCodeInput" class="mono" placeholder="点击获取免登码">
+            </div>
+            <p class="hint">建议把首页地址配置成 `https://your-domain/dingtalk/borrow-assistant.html?corpId=$CORPID$`，钉钉容器进入页面时会自动替换 `$CORPID$`。</p>
+        </div>
+
+        <div class="panel">
+            <h2>联调输出</h2>
+            <pre id="outputPanel">等待操作...</pre>
+        </div>
+    </section>
+
+    <section class="grid">
+        <div class="panel">
+            <h2>当前用户</h2>
+            <pre id="userPanel">尚未换取用户信息</pre>
+            <p class="hint">先执行 `dd.config`、获取 `authCode`，再调用“后端换取用户”。页面会自动把当前用户填入待办和机器人测试。</p>
+        </div>
+
+        <div class="panel">
+            <h2>待办测试</h2>
+            <div class="field">
+                <label for="todoUnionIdInput">待办归属 unionId</label>
+                <input id="todoUnionIdInput" class="mono" placeholder="后端换取用户后自动填充">
+            </div>
+            <div class="field">
+                <label for="todoOperatorIdInput">操作人 operatorId</label>
+                <input id="todoOperatorIdInput" class="mono" placeholder="建议同 unionId">
+            </div>
+            <div class="field">
+                <label for="todoPayloadInput">待办 payload JSON</label>
+                <textarea id="todoPayloadInput" class="mono" placeholder="点“填充待办样例”自动生成"></textarea>
+            </div>
+            <div class="actions">
+                <button type="button" id="fillTodoButton">填充待办样例</button>
+                <button type="button" id="sendTodoButton">给自己发待办</button>
+            </div>
+            <p class="hint small">当前接口走工作待办，需要 `detailUrl.appUrl / pcUrl`。页面默认填当前 H5 地址，便于直接跳回联调页。</p>
+        </div>
+    </section>
+
+    <section class="grid full">
+        <div class="panel">
+            <h2>机器人消息测试</h2>
+            <div class="field">
+                <label for="robotUserIdsInput">接收 userIds</label>
+                <input id="robotUserIdsInput" class="mono" placeholder="多个 userId 用英文逗号分隔">
+            </div>
+            <div class="field">
+                <label for="robotMsgKeyInput">msgKey</label>
+                <input id="robotMsgKeyInput" class="mono" value="sampleText" placeholder="例如 sampleText">
+            </div>
+            <div class="field">
+                <label for="robotMsgParamInput">msgParam JSON</label>
+                <textarea id="robotMsgParamInput" class="mono" placeholder="点“填充机器人样例”自动生成"></textarea>
+            </div>
+            <div class="actions">
+                <button type="button" id="fillRobotButton">填充机器人样例</button>
+                <button type="button" id="sendRobotButton">给自己发机器人消息</button>
+            </div>
+            <p class="hint small">批量发送人与机器人会话中消息接口需要 `robotCode + userIds + msgKey + msgParam`；是否能真实送达，还取决于机器人能力、消息模版和应用可见范围是否已在钉钉后台配置。</p>
+        </div>
+    </section>
+
+    <section class="grid full">
+        <div class="panel">
+            <h2>互动卡片测试</h2>
+            <div class="field">
+                <label for="cardPayloadInput">createAndDeliver payload JSON</label>
+                <textarea id="cardPayloadInput" class="mono" placeholder="点“填充卡片样例”自动生成"></textarea>
+            </div>
+            <div class="actions">
+                <button type="button" id="fillCardButton">填充卡片样例</button>
+                <button type="button" id="sendCardButton">发送互动卡片</button>
+            </div>
+            <p class="hint small">互动卡片是否能真实发送，取决于你是否已在钉钉后台创建卡片模版、开启卡片能力，并将示例中的 `cardTemplateId`、`outTrackId`、接收人参数替换成真实值。</p>
+        </div>
+    </section>
+</main>
+
+<script>
+    const outputPanel = document.getElementById('outputPanel');
+    const containerStatus = document.getElementById('containerStatus');
+    const corpIdInput = document.getElementById('corpIdInput');
+    const clientIdInput = document.getElementById('clientIdInput');
+    const agentIdInput = document.getElementById('agentIdInput');
+    const authCodeInput = document.getElementById('authCodeInput');
+    const userPanel = document.getElementById('userPanel');
+    const todoUnionIdInput = document.getElementById('todoUnionIdInput');
+    const todoOperatorIdInput = document.getElementById('todoOperatorIdInput');
+    const todoPayloadInput = document.getElementById('todoPayloadInput');
+    const robotUserIdsInput = document.getElementById('robotUserIdsInput');
+    const robotMsgKeyInput = document.getElementById('robotMsgKeyInput');
+    const robotMsgParamInput = document.getElementById('robotMsgParamInput');
+    const cardPayloadInput = document.getElementById('cardPayloadInput');
+    const defaultCardTemplateId = '2fec46db-af53-4730-b9c4-64a23fd2351e.schema';
+
+    let appConfig = null;
+    let jsapiConfig = null;
+    let currentUser = null;
+
+    function log(title, payload) {
+        const formatted = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+        outputPanel.textContent = `[${new Date().toLocaleString()}] ${title}\n${formatted}`;
+        outputPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderUser(user) {
+        currentUser = user;
+        userPanel.textContent = user ? JSON.stringify(user, null, 2) : '尚未换取用户信息';
+        if (!user) {
+            return;
+        }
+        todoUnionIdInput.value = user.unionId || '';
+        todoOperatorIdInput.value = user.unionId || '';
+        robotUserIdsInput.value = user.userId || '';
+        fillTodoSample();
+        fillRobotSample();
+    }
+
+    function getUrlCorpId() {
+        const url = new URL(window.location.href);
+        return url.searchParams.get('corpid') || url.searchParams.get('corpId') || '';
+    }
+
+    function setContainerStatus(text, type) {
+        containerStatus.textContent = text;
+        containerStatus.className = `status${type ? ` ${type}` : ''}`;
+    }
+
+    async function readBackendConfig() {
+        const response = await fetch('/api/v1/dingtalk/app-config');
+        const result = await response.json();
+        appConfig = result.data || null;
+        corpIdInput.value = getUrlCorpId() || (appConfig && appConfig.corpId) || '';
+        clientIdInput.value = (appConfig && appConfig.clientId) || '';
+        agentIdInput.value = (appConfig && appConfig.agentId) || '';
+        log('后端配置', result);
+        return result;
+    }
+
+    async function buildJsapiConfig() {
+        const currentUrl = window.location.href.split('#')[0];
+        const response = await fetch(`/api/v1/dingtalk/jsapi-config?url=${encodeURIComponent(currentUrl)}`);
+        const result = await response.json();
+        jsapiConfig = result.data || null;
+        log('JSAPI 签名', result);
+        return result;
+    }
+
+    function getDingTalkClient() {
+        return window.dd || window.DingTalkPC || null;
+    }
+
+    function buildDetailUrl() {
+        return {
+            appUrl: window.location.href.split('#')[0],
+            pcUrl: `${window.location.origin}/swagger-ui.html`
+        };
+    }
+
+    function parseJsonInput(text, fieldName) {
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error(`${fieldName} 不是合法 JSON: ${error.message}`);
+        }
+    }
+
+    async function postJson(url, payload) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        return response.json();
+    }
+
+    function ensureApiSuccess(result, actionName) {
+        if (!result || result.code !== '0') {
+            const message = (result && result.message) || `${actionName}失败`;
+            throw new Error(message);
+        }
+        return result;
+    }
+
+    async function configJsapi() {
+        if (!jsapiConfig) {
+            await buildJsapiConfig();
+        }
+        const ddClient = getDingTalkClient();
+        if (!ddClient || !ddClient.config) {
+            throw new Error('当前环境未加载钉钉 JSAPI SDK');
+        }
+        await new Promise((resolve, reject) => {
+            ddClient.config({
+                agentId: jsapiConfig.agentId,
+                corpId: jsapiConfig.corpId,
+                timeStamp: jsapiConfig.timeStamp,
+                nonceStr: jsapiConfig.nonceStr,
+                signature: jsapiConfig.signature,
+                type: 0,
+                jsApiList: ['runtime.permission.requestAuthCode']
+            });
+            ddClient.ready(resolve);
+            ddClient.error(reject);
+        });
+        log('dd.config', { ok: true, jsapiConfig });
+    }
+
+    async function requestAuthCode() {
+        const ddClient = getDingTalkClient();
+        const corpId = corpIdInput.value.trim();
+        const clientId = clientIdInput.value.trim();
+        if (!corpId) {
+            throw new Error('缺少 CorpId，请先配置 DINGTALK_CORP_ID 或在首页 URL 中带入 corpid 参数');
+        }
+        if (!ddClient) {
+            throw new Error('当前不在钉钉容器内，无法直接获取免登码');
+        }
+
+        const code = await new Promise((resolve, reject) => {
+            if (typeof ddClient.requestAuthCode === 'function') {
+                ddClient.requestAuthCode({
+                    corpId,
+                    clientId,
+                    onSuccess: (result) => resolve(result.code),
+                    onFail: reject
+                });
+                return;
+            }
+            if (ddClient.runtime && ddClient.runtime.permission && typeof ddClient.runtime.permission.requestAuthCode === 'function') {
+                ddClient.runtime.permission.requestAuthCode({
+                    corpId,
+                    onSuccess: (result) => resolve(result.code),
+                    onFail: reject
+                });
+                return;
+            }
+            reject(new Error('当前钉钉容器不支持 requestAuthCode 接口'));
+        });
+
+        authCodeInput.value = code;
+        log('免登码获取成功', { code });
+        return code;
+    }
+
+    async function exchangeAuthCode() {
+        const code = authCodeInput.value.trim();
+        if (!code) {
+            throw new Error('请先获取或填写 authCode');
+        }
+        const response = await fetch(`/api/v1/dingtalk/auth/exchange?code=${encodeURIComponent(code)}`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+        if (result && result.data) {
+            renderUser(result.data);
+        }
+        log('后端换取用户信息', result);
+        return result;
+    }
+
+    function fillTodoSample() {
+        const unionId = todoUnionIdInput.value.trim() || (currentUser && currentUser.unionId) || '';
+        const name = (currentUser && currentUser.name) || '当前用户';
+        const dueTime = Date.now() + 60 * 60 * 1000;
+        const payload = {
+            sourceId: `dingtalk-debug-${Date.now()}`,
+            subject: '直播借样 H5 联调待办',
+            description: `发送给 ${name} 的联调待办`,
+            creatorId: unionId || undefined,
+            executorIds: unionId ? [unionId] : [],
+            participantIds: unionId ? [unionId] : [],
+            dueTime,
+            detailUrl: buildDetailUrl(),
+            isOnlyShowExecutor: true,
+            priority: 20,
+            notifyConfigs: {
+                dingNotify: '1',
+                sendTodoApn: 'true',
+                sendAssistantChat: 'true'
+            },
+            contentFieldList: [
+                {
+                    fieldKey: 'taskNo',
+                    fieldValue: 'DT-DEBUG'
+                },
+                {
+                    fieldKey: 'operator',
+                    fieldValue: name
+                }
+            ]
+        };
+        todoPayloadInput.value = JSON.stringify(payload, null, 2);
+    }
+
+    async function sendTodo() {
+        const unionId = todoUnionIdInput.value.trim();
+        const operatorId = todoOperatorIdInput.value.trim();
+        if (!unionId) {
+            throw new Error('请先换取用户信息，或手动填写待办 unionId');
+        }
+        const payload = parseJsonInput(todoPayloadInput.value, '待办 payload');
+        log('发送待办中', { unionId, operatorId, payload });
+        const result = await postJson('/api/v1/dingtalk/todos', {
+            unionId,
+            operatorId,
+            payload
+        });
+        ensureApiSuccess(result, '发送待办');
+        log('发送待办结果', result);
+        alert('待办请求已提交，请到钉钉待办列表查看结果。');
+        return result;
+    }
+
+    function fillRobotSample() {
+        const userId = robotUserIdsInput.value.trim() || (currentUser && currentUser.userId) || '';
+        const name = (currentUser && currentUser.name) || '当前用户';
+        if (userId) {
+            robotUserIdsInput.value = userId;
+        }
+        if (!robotMsgKeyInput.value.trim()) {
+            robotMsgKeyInput.value = 'sampleText';
+        }
+        robotMsgParamInput.value = JSON.stringify({
+            content: `直播借样钉钉联调消息，接收人：${name}`
+        }, null, 2);
+    }
+
+    async function sendRobotMessage() {
+        const userIds = robotUserIdsInput.value
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        if (userIds.length === 0) {
+            throw new Error('请先换取用户信息，或手动填写至少一个 userId');
+        }
+        const msgKey = robotMsgKeyInput.value.trim();
+        if (!msgKey) {
+            throw new Error('msgKey 不能为空');
+        }
+        const msgParam = parseJsonInput(robotMsgParamInput.value, '机器人 msgParam');
+        log('发送机器人消息中', { userIds, msgKey, msgParam });
+        const result = await postJson('/api/v1/dingtalk/robot/messages/batch', {
+            robotCode: appConfig && appConfig.robotCode,
+            userIds,
+            msgKey,
+            msgParam
+        });
+        ensureApiSuccess(result, '发送机器人消息');
+        log('发送机器人消息结果', result);
+        alert('机器人消息请求已提交，请到通知号会话查看结果。');
+        return result;
+    }
+
+    function fillCardSample() {
+        const userId = (currentUser && currentUser.userId) || '';
+        const name = (currentUser && currentUser.name) || '当前用户';
+        const payload = {
+            outTrackId: `card-debug-${Date.now()}`,
+            cardTemplateId: defaultCardTemplateId,
+            openSpaceId: userId ? `dtv1.card//IM_ROBOT.${userId}` : 'dtv1.card//IM_ROBOT.请替换为当前用户userId',
+            cardData: {
+                cardParamMap: {
+                    title: '直播借样待处理',
+                    content: `给 ${name} 的钉钉卡片联调消息`,
+                    taskNo: 'BT-DEBUG'
+                }
+            },
+            imRobotOpenSpaceModel: {
+                supportForward: true
+            },
+            imRobotOpenDeliverModel: {
+                spaceType: 'IM_ROBOT'
+            }
+        };
+        cardPayloadInput.value = JSON.stringify(payload, null, 2);
+    }
+
+    async function sendCard() {
+        const payload = parseJsonInput(cardPayloadInput.value, '卡片 payload');
+        log('发送互动卡片中', payload);
+        const result = await postJson('/api/v1/dingtalk/cards/create-and-deliver', {
+            payload
+        });
+        ensureApiSuccess(result, '发送互动卡片');
+        log('发送互动卡片结果', result);
+        alert('互动卡片请求已提交，请到目标会话查看结果。');
+        return result;
+    }
+
+    document.getElementById('loadConfigButton').addEventListener('click', () => readBackendConfig().catch((error) => log('读取配置失败', String(error))));
+    document.getElementById('loadJsapiButton').addEventListener('click', () => buildJsapiConfig().catch((error) => log('生成签名失败', String(error))));
+    document.getElementById('configButton').addEventListener('click', () => configJsapi().catch((error) => log('dd.config 失败', String(error))));
+    document.getElementById('authCodeButton').addEventListener('click', () => requestAuthCode().catch((error) => log('获取免登码失败', String(error))));
+    document.getElementById('exchangeButton').addEventListener('click', () => exchangeAuthCode().catch((error) => log('换取用户失败', String(error))));
+    document.getElementById('assistantPageButton').addEventListener('click', () => {
+        const url = new URL('/dingtalk/borrow-assistant.html', window.location.origin);
+        const corpId = corpIdInput.value.trim() || getUrlCorpId();
+        url.searchParams.set('v', '20260625c');
+        if (corpId) {
+            url.searchParams.set('corpId', corpId);
+        }
+        window.location.href = url.toString();
+    });
+    document.getElementById('fillTodoButton').addEventListener('click', () => {
+        try {
+            fillTodoSample();
+            log('待办样例已填充', parseJsonInput(todoPayloadInput.value, '待办 payload'));
+        } catch (error) {
+            log('填充待办样例失败', String(error));
+        }
+    });
+    document.getElementById('sendTodoButton').addEventListener('click', () => sendTodo().catch((error) => {
+        log('发送待办失败', String(error));
+        alert(`发送待办失败：${String(error)}`);
+    }));
+    document.getElementById('fillRobotButton').addEventListener('click', () => {
+        try {
+            fillRobotSample();
+            log('机器人样例已填充', {
+                msgKey: robotMsgKeyInput.value,
+                msgParam: parseJsonInput(robotMsgParamInput.value, '机器人 msgParam')
+            });
+        } catch (error) {
+            log('填充机器人样例失败', String(error));
+        }
+    });
+    document.getElementById('sendRobotButton').addEventListener('click', () => sendRobotMessage().catch((error) => {
+        log('发送机器人消息失败', String(error));
+        alert(`发送机器人消息失败：${String(error)}`);
+    }));
+    document.getElementById('fillCardButton').addEventListener('click', () => {
+        try {
+            fillCardSample();
+            log('卡片样例已填充', parseJsonInput(cardPayloadInput.value, '卡片 payload'));
+        } catch (error) {
+            log('填充卡片样例失败', String(error));
+        }
+    });
+    document.getElementById('sendCardButton').addEventListener('click', () => sendCard().catch((error) => {
+        log('发送互动卡片失败', String(error));
+        alert(`发送互动卡片失败：${String(error)}`);
+    }));
+
+    (async function init() {
+        const ddClient = getDingTalkClient();
+        setContainerStatus(ddClient ? '已检测到钉钉容器 / SDK' : '当前不在钉钉容器，可用于手工后端联调', ddClient ? 'ok' : 'error');
+        corpIdInput.value = getUrlCorpId();
+        fillTodoSample();
+        fillRobotSample();
+        fillCardSample();
+        try {
+            await readBackendConfig();
+        } catch (error) {
+            log('初始化提示', `后端配置读取失败: ${String(error)}`);
+        }
+    })();
+</script>
+</body>
+</html>

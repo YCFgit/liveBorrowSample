@@ -1,0 +1,258 @@
+-- 直播借样一期 MVP 初始化种子数据
+-- 设计目标：可重复执行，不因重复导数而失败
+
+INSERT INTO virtual_store_config (
+  virtual_store_code,
+  virtual_store_name,
+  enabled,
+  sort_no,
+  remark
+) VALUES
+  ('VS0001', '直播虚店一号', 1, 10, '初始化样例虚店'),
+  ('VS0002', '直播虚店二号', 1, 20, '初始化样例虚店')
+ON DUPLICATE KEY UPDATE
+  virtual_store_name = VALUES(virtual_store_name),
+  enabled = VALUES(enabled),
+  sort_no = VALUES(sort_no),
+  remark = VALUES(remark);
+
+INSERT INTO sample_apply (
+  apply_no,
+  applicant_emp_id,
+  applicant_name,
+  dept_code,
+  dept_name,
+  virtual_store_code,
+  virtual_store_name,
+  delivery_type,
+  pickup_store_code,
+  pickup_store_name,
+  receiver_name,
+  receiver_mobile,
+  receiver_province,
+  receiver_city,
+  receiver_district,
+  receiver_address,
+  audit_status,
+  source_channel,
+  remark
+) VALUES (
+  'BA202606240001',
+  'E10001',
+  '张三',
+  'D001',
+  '直播运营一部',
+  'VS0001',
+  '直播虚店一号',
+  'EXPRESS',
+  NULL,
+  NULL,
+  '张三',
+  '13800000000',
+  '上海市',
+  '上海市',
+  '闵行区',
+  '某某路 100 号',
+  'APPROVED',
+  'DINGTALK',
+  '初始化样例'
+) ON DUPLICATE KEY UPDATE
+  applicant_emp_id = VALUES(applicant_emp_id),
+  applicant_name = VALUES(applicant_name),
+  dept_code = VALUES(dept_code),
+  dept_name = VALUES(dept_name),
+  virtual_store_code = VALUES(virtual_store_code),
+  virtual_store_name = VALUES(virtual_store_name),
+  delivery_type = VALUES(delivery_type),
+  pickup_store_code = VALUES(pickup_store_code),
+  pickup_store_name = VALUES(pickup_store_name),
+  receiver_name = VALUES(receiver_name),
+  receiver_mobile = VALUES(receiver_mobile),
+  receiver_province = VALUES(receiver_province),
+  receiver_city = VALUES(receiver_city),
+  receiver_district = VALUES(receiver_district),
+  receiver_address = VALUES(receiver_address),
+  audit_status = VALUES(audit_status),
+  source_channel = VALUES(source_channel),
+  remark = VALUES(remark);
+
+INSERT INTO sample_apply_item (
+  apply_id,
+  line_no,
+  spu_code,
+  sku_code,
+  size_code,
+  product_name,
+  color_name,
+  apply_qty,
+  approved_qty,
+  can_use_inventory_qty,
+  is_blacklisted
+)
+SELECT
+  sa.id,
+  1,
+  'SPU001',
+  'SKU001',
+  'M',
+  '基础连衣裙',
+  '黑色',
+  2,
+  2,
+  20,
+  0
+FROM sample_apply sa
+WHERE sa.apply_no = 'BA202606240001'
+ON DUPLICATE KEY UPDATE
+  spu_code = VALUES(spu_code),
+  sku_code = VALUES(sku_code),
+  size_code = VALUES(size_code),
+  product_name = VALUES(product_name),
+  color_name = VALUES(color_name),
+  apply_qty = VALUES(apply_qty),
+  approved_qty = VALUES(approved_qty),
+  can_use_inventory_qty = VALUES(can_use_inventory_qty),
+  is_blacklisted = VALUES(is_blacklisted);
+
+INSERT INTO sample_task (
+  task_no,
+  borrow_no,
+  apply_no,
+  applicant_emp_id,
+  applicant_name,
+  virtual_store_code,
+  virtual_store_name,
+  source_store_code,
+  source_store_name,
+  dest_store_code,
+  dest_store_name,
+  delivery_type,
+  task_status,
+  delivery_status,
+  pickup_status,
+  return_status,
+  exception_status,
+  logistics_no,
+  gms_out_bill_no,
+  logistics_mode,
+  borrowed_at,
+  expected_return_at,
+  remark
+) VALUES (
+  'BT202606240001',
+  'BR202606240001',
+  'BA202606240001',
+  'E10001',
+  '张三',
+  'VS0001',
+  '直播虚店一号',
+  'ST0001',
+  '徐汇门店',
+  'WH0001',
+  '直播仓',
+  'EXPRESS',
+  'BORROWING',
+  'RECEIVED',
+  'NOT_APPLICABLE',
+  'NONE',
+  'NONE',
+  'SF202606240001',
+  'GMSOUT20260624001',
+  1,
+  '2026-06-24 10:00:00',
+  '2026-07-01 10:00:00',
+  '初始化任务'
+) ON DUPLICATE KEY UPDATE
+  borrow_no = VALUES(borrow_no),
+  apply_no = VALUES(apply_no),
+  applicant_emp_id = VALUES(applicant_emp_id),
+  applicant_name = VALUES(applicant_name),
+  virtual_store_code = VALUES(virtual_store_code),
+  virtual_store_name = VALUES(virtual_store_name),
+  source_store_code = VALUES(source_store_code),
+  source_store_name = VALUES(source_store_name),
+  dest_store_code = VALUES(dest_store_code),
+  dest_store_name = VALUES(dest_store_name),
+  delivery_type = VALUES(delivery_type),
+  task_status = VALUES(task_status),
+  delivery_status = VALUES(delivery_status),
+  pickup_status = VALUES(pickup_status),
+  return_status = VALUES(return_status),
+  exception_status = VALUES(exception_status),
+  logistics_no = VALUES(logistics_no),
+  gms_out_bill_no = VALUES(gms_out_bill_no),
+  logistics_mode = VALUES(logistics_mode),
+  borrowed_at = VALUES(borrowed_at),
+  expected_return_at = VALUES(expected_return_at),
+  remark = VALUES(remark);
+
+INSERT INTO sample_task_item (
+  task_id,
+  line_no,
+  spu_code,
+  sku_code,
+  size_code,
+  product_name,
+  color_name,
+  inventory_grade,
+  apply_qty,
+  approved_qty,
+  shipped_qty,
+  received_qty,
+  picked_qty,
+  borrowing_qty
+)
+SELECT
+  st.id,
+  1,
+  'SPU001',
+  'SKU001',
+  'M',
+  '基础连衣裙',
+  '黑色',
+  'A',
+  2,
+  2,
+  2,
+  2,
+  0,
+  2
+FROM sample_task st
+WHERE st.task_no = 'BT202606240001'
+ON DUPLICATE KEY UPDATE
+  spu_code = VALUES(spu_code),
+  sku_code = VALUES(sku_code),
+  size_code = VALUES(size_code),
+  product_name = VALUES(product_name),
+  color_name = VALUES(color_name),
+  inventory_grade = VALUES(inventory_grade),
+  apply_qty = VALUES(apply_qty),
+  approved_qty = VALUES(approved_qty),
+  shipped_qty = VALUES(shipped_qty),
+  received_qty = VALUES(received_qty),
+  picked_qty = VALUES(picked_qty),
+  borrowing_qty = VALUES(borrowing_qty);
+
+INSERT INTO gms_bill_relation (
+  biz_type,
+  biz_no,
+  task_no,
+  gms_bill_no,
+  ref_bill_no,
+  bill_status,
+  sync_status
+) VALUES (
+  'OUTBOUND',
+  'BT202606240001',
+  'BT202606240001',
+  'GMSOUT20260624001',
+  'BR202606240001',
+  'FINISHED',
+  'SUCCESS'
+) ON DUPLICATE KEY UPDATE
+  biz_type = VALUES(biz_type),
+  biz_no = VALUES(biz_no),
+  task_no = VALUES(task_no),
+  ref_bill_no = VALUES(ref_bill_no),
+  bill_status = VALUES(bill_status),
+  sync_status = VALUES(sync_status);
